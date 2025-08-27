@@ -189,130 +189,142 @@
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
 
-    if(tokenParam) {
-      // Teilnehmer-Modus
-      const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
-      const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
-      const giver = tokenMap[tokenParam];
-      const receiver = assignments[giver];
+    // Warten bis DOM geladen ist
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("DOM loaded, tokenParam:", tokenParam);
       
-      // Admin-Bereich ausblenden
-      document.getElementById("admin").style.display = "none";
-      
-      if (!giver || !receiver) {
-        document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
-        document.getElementById("drawBtn").style.display = "none";
-        return;
-      }
-
-      const drawArea = document.getElementById("drawArea");
-      const drawBtn = document.getElementById("drawBtn");
-
-      drawBtn.addEventListener("click", () => {
-        drawBtn.disabled = true;
+      if(tokenParam) {
+        // Teilnehmer-Modus
+        console.log("Participant mode");
+        const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
+        const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
+        const giver = tokenMap[tokenParam];
+        const receiver = assignments[giver];
         
-        const names = [...participants];
-        const totalDuration = 4000; // 4 Sekunden
-        const startTime = performance.now();
-        let lastChange = startTime;
-        let currentIndex = 0;
+        // Admin-Bereich ausblenden
+        document.getElementById("admin").style.display = "none";
         
-        function animate(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / totalDuration, 1);
+        if (!giver || !receiver) {
+          document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
+          document.getElementById("drawBtn").style.display = "none";
+          return;
+        }
+
+        const drawArea = document.getElementById("drawArea");
+        const drawBtn = document.getElementById("drawBtn");
+
+        drawBtn.addEventListener("click", () => {
+          drawBtn.disabled = true;
           
-          // Ease-Out: schnell am Anfang, langsam am Ende
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const interval = 50 + eased * 400; // Zeit zwischen Namen
+          const names = [...participants];
+          const totalDuration = 4000; // 4 Sekunden
+          const startTime = performance.now();
+          let lastChange = startTime;
+          let currentIndex = 0;
           
-          if(now - lastChange >= interval) {
-            drawArea.innerText = names[currentIndex];
-            currentIndex = (currentIndex + 1) % names.length;
-            lastChange = now;
+          function animate(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / totalDuration, 1);
+            
+            // Ease-Out: schnell am Anfang, langsam am Ende
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const interval = 50 + eased * 400; // Zeit zwischen Namen
+            
+            if(now - lastChange >= interval) {
+              drawArea.innerText = names[currentIndex];
+              currentIndex = (currentIndex + 1) % names.length;
+              lastChange = now;
+            }
+            
+            if(progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              // Finale Anzeige
+              setTimeout(() => {
+                drawArea.innerText = receiver;
+                drawArea.style.color = "#ff0000";
+                drawArea.style.fontSize = "2.5em";
+              }, 200);
+            }
           }
           
-          if(progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
-            // Finale Anzeige
-            setTimeout(() => {
-              drawArea.innerText = receiver;
-              drawArea.style.color = "#ff0000";
-              drawArea.style.fontSize = "2.5em";
-            }, 200);
-          }
-        }
-        
-        requestAnimationFrame(animate);
-      });
-      
-    } else {
-      // Admin-Modus
-      document.getElementById("participant").style.display = "none";
-      
-      document.getElementById("generateBtn").addEventListener("click", () => {
-        console.log("Generate button clicked"); // Debug
-        
-        // Zufällige Zuweisung ohne Gegenseitigkeit
-        let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
-        let shuffled;
-        
-        do {
-          shuffled = others.slice().sort(() => Math.random() - 0.5);
-        } while(shuffled.some((v, i) => v === others[i]));
-        
-        const assignments = {};
-        assignments[fixedGiver] = fixedReceiver;
-        
-        for(let i = 0; i < others.length; i++) {
-          assignments[others[i]] = shuffled[i];
-        }
-        
-        console.log("Assignments:", assignments); // Debug
-        
-        // Tokens erzeugen
-        const tokenMap = {};
-        participants.forEach(p => {
-          const token = Math.random().toString(36).substr(2, 10);
-          tokenMap[token] = p;
+          requestAnimationFrame(animate);
         });
         
-        console.log("TokenMap:", tokenMap); // Debug
+      } else {
+        // Admin-Modus
+        console.log("Admin mode");
+        document.getElementById("participant").style.display = "none";
         
-        localStorage.setItem("assignments", JSON.stringify(assignments));
-        localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
-        
-        // Links anzeigen
-        const linksDiv = document.getElementById("links");
-        linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
-        
-        for(const [token, giver] of Object.entries(tokenMap)) {
-          const linkWrapper = document.createElement("div");
-          linkWrapper.style.marginBottom = "10px";
-          
-          const label = document.createElement("strong");
-          label.innerText = giver + ": ";
-          
-          const link = document.createElement("a");
-          link.href = `${window.location.origin}${window.location.pathname}?token=${token}`;
-          link.target = "_blank";
-          link.innerText = "Los ziehen";
-          
-          linkWrapper.appendChild(label);
-          linkWrapper.appendChild(link);
-          linksDiv.appendChild(linkWrapper);
+        const generateBtn = document.getElementById("generateBtn");
+        if (generateBtn) {
+          generateBtn.addEventListener("click", function() {
+            console.log("Generate button clicked"); // Debug
+            
+            // Zufällige Zuweisung ohne Gegenseitigkeit
+            let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
+            let shuffled;
+            
+            do {
+              shuffled = others.slice().sort(() => Math.random() - 0.5);
+            } while(shuffled.some((v, i) => v === others[i]));
+            
+            const assignments = {};
+            assignments[fixedGiver] = fixedReceiver;
+            
+            for(let i = 0; i < others.length; i++) {
+              assignments[others[i]] = shuffled[i];
+            }
+            
+            console.log("Assignments:", assignments); // Debug
+            
+            // Tokens erzeugen
+            const tokenMap = {};
+            participants.forEach(p => {
+              const token = Math.random().toString(36).substr(2, 10);
+              tokenMap[token] = p;
+            });
+            
+            console.log("TokenMap:", tokenMap); // Debug
+            
+            localStorage.setItem("assignments", JSON.stringify(assignments));
+            localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
+            
+            // Links anzeigen
+            const linksDiv = document.getElementById("links");
+            linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
+            
+            for(const [token, giver] of Object.entries(tokenMap)) {
+              const linkWrapper = document.createElement("div");
+              linkWrapper.style.marginBottom = "10px";
+              
+              const label = document.createElement("strong");
+              label.innerText = giver + ": ";
+              
+              const link = document.createElement("a");
+              link.href = `${window.location.origin}${window.location.pathname}?token=${token}`;
+              link.target = "_blank";
+              link.innerText = "Los ziehen";
+              
+              linkWrapper.appendChild(label);
+              linkWrapper.appendChild(link);
+              linksDiv.appendChild(linkWrapper);
+            }
+            
+            generateBtn.innerText = "Zuweisungen erstellt!";
+            generateBtn.disabled = true;
+            
+            // Button nach 5 Sekunden wieder aktivieren
+            setTimeout(() => {
+              generateBtn.innerText = "Neue Zuweisungen erstellen";
+              generateBtn.disabled = false;
+            }, 5000);
+          });
+        } else {
+          console.error("Generate button not found!");
         }
-        
-        document.getElementById("generateBtn").innerText = "Zuweisungen erstellt!";
-        document.getElementById("generateBtn").disabled = true;
-        
-        // Button nach 5 Sekunden wieder aktivieren
-        setTimeout(() => {
-          document.getElementById("generateBtn").innerText = "Neue Zuweisungen erstellen";
-          document.getElementById("generateBtn").disabled = false;
-        }, 5000);
-      });
-    }
+      }
+    });
   </script>
 </body>
 </html>

@@ -290,6 +290,12 @@
         drawBtn.addEventListener("click", () => {
           drawBtn.disabled = true;
           
+          // Container für bessere Lesbarkeit hinzufügen
+          const drawArea = document.getElementById("drawArea");
+          drawArea.style.background = "rgba(255, 255, 255, 0.8)";
+          drawArea.style.borderRadius = "10px";
+          drawArea.style.padding = "15px";
+          
           const names = [...participants];
           const totalDuration = 4000; // 4 Sekunden
           const startTime = performance.now();

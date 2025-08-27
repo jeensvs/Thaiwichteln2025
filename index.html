@@ -11,19 +11,24 @@
       font-family: Arial, sans-serif;
       text-align: center;
       color: #333;
-      background: white;
     }
 
     .content-area {
       background: white;
-      padding: 40px 20px;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
     }
 
     .background-area {
-      background: url('images/background.jpg') no-repeat center top fixed;
+      background: url('images/background.jpg') no-repeat center center;
       background-size: cover;
-      min-height: 100vh;
-      padding: 40px 20px;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     .container {
@@ -31,19 +36,26 @@
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
       border-radius: 10px;
-      padding: 40px;
+      padding: 30px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 100%;
+    }
+
+    .draw-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
     }
 
     h1 {
-      margin-bottom: 30px;
-      font-size: 2.5em;
+      margin-bottom: 20px;
+      font-size: 2em;
       color: #333;
     }
 
     h2 {
-      margin-bottom: 20px;
-      font-size: 1.5em;
+      margin-bottom: 15px;
+      font-size: 1.3em;
       color: #333;
     }
 
@@ -73,18 +85,19 @@
     }
 
     #drawArea {
-      font-size: 2em;
+      font-size: 1.5em;
       font-weight: bold;
       color: #333;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-      margin: 30px 0;
-      min-height: 80px;
+      margin: 15px 0;
+      min-height: 60px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: rgba(255, 255, 255, 0.3);
       border-radius: 10px;
       border: 2px solid rgba(0, 0, 0, 0.1);
+      padding: 10px;
     }
 
     #admin {
@@ -138,23 +151,55 @@
     }
 
     @media (max-width: 600px) {
+      .content-area {
+        padding: 15px;
+      }
+      
+      .background-area {
+        height: 100vh;
+        padding: 15px;
+      }
+      
       .container {
-        margin: 10px;
         padding: 20px;
+        margin: 0 10px;
+        max-width: none;
+      }
+      
+      .draw-container {
+        max-width: none;
       }
       
       h1 {
-        font-size: 2em;
+        font-size: 1.8em;
+        margin-bottom: 15px;
+      }
+      
+      h2 {
+        font-size: 1.2em;
+        margin-bottom: 10px;
       }
       
       #drawArea {
-        font-size: 1.8em;
-        min-height: 60px;
+        font-size: 1.3em;
+        min-height: 50px;
+        margin: 10px 0;
+        padding: 8px;
       }
       
       button {
         font-size: 1em;
-        padding: 12px 24px;
+        padding: 10px 20px;
+        margin: 10px 5px;
+      }
+      
+      #admin {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      
+      #participant {
+        padding: 15px;
       }
     }
   </style>
@@ -169,7 +214,11 @@
         <button id="generateBtn">Zuweisungen erstellen</button>
         <div id="links"></div>
       </div>
-      
+    </div>
+  </div>
+  
+  <div class="background-area">
+    <div class="draw-container">
       <div id="participant">
         <h2>Ziehe dein Los</h2>
         <div id="drawArea">Klicke auf "Los ziehen" um zu starten!</div>
@@ -177,8 +226,6 @@
       </div>
     </div>
   </div>
-  
-  <div class="background-area"></div>
 
   <script>
     const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];

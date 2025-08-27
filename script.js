@@ -1,25 +1,76 @@
-// Teilnehmerliste
+// Teilnehmerliste und feste Zuweisung
 const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
 const fixedGiver = "Jens";
 const fixedReceiver = "Susanne";
 
-// Prüfen, ob URL einen Token enthält
+// Prüfen auf Token
 const urlParams = new URLSearchParams(window.location.search);
 const tokenParam = urlParams.get("token");
 
 if(tokenParam){
-  // Teilnehmer-Modus: nur eigene Zuweisung anzeigen
+  // Teilnehmer-Modus: nur eigene Zuweisung
   const tokenMap = JSON.parse(localStorage.getItem("tokenMap"));
   const assignments = JSON.parse(localStorage.getItem("assignments"));
-  if(tokenMap && assignments[tokenMap[tokenParam]]){
-    document.getElementById("assignment").innerText = `Du beschenkst: ${assignments[tokenMap[tokenParam]]}`;
-    document.getElementById("admin").style.display = "none";
-  } else {
-    document.getElementById("assignment").innerText = "Ungültiger oder abgelaufener Token.";
-    document.getElementById("admin").style.display = "none";
+  const giver = tokenMap[tokenParam];
+  const receiver = assignments[giver];
+
+  document.getElementById("admin").style.display = "none";
+
+  // Rad vorbereiten
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const radius = canvas.width / 2;
+  const names = participants.slice(); // alle Namen für Rad
+
+  // Rad zeichnen
+  function drawWheel(angle=0){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const arc = (2 * Math.PI) / names.length;
+    for(let i=0;i<names.length;i++){
+      ctx.beginPath();
+      ctx.moveTo(radius,radius);
+      ctx.arc(radius,radius,radius, i*arc + angle, (i+1)*arc + angle);
+      ctx.fillStyle = i%2===0 ? "#ffcc00":"#ff6666";
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(radius,radius);
+      ctx.rotate(i*arc + arc/2 + angle);
+      ctx.textAlign = "right";
+      ctx.fillStyle="#000";
+      ctx.font="16px Arial";
+      ctx.fillText(names[i], radius-10, 0);
+      ctx.restore();
+    }
   }
+
+  drawWheel();
+
+  // Spin-Button
+  document.getElementById("spinBtn").addEventListener("click", ()=>{
+    let angle = 0;
+    let speed = 0.3 + Math.random()*0.5; // Startgeschwindigkeit
+    let stopAngle = (names.indexOf(receiver) + 0.5) * (2*Math.PI)/names.length; // Ziel
+
+    function animate(){
+      speed *= 0.97; // verlangsamen
+      angle += speed;
+      drawWheel(angle);
+      // Wenn Geschwindigkeit sehr klein und fast auf Ziel
+      if(speed > 0.001 || Math.abs((angle % (2*Math.PI)) - stopAngle) > 0.05){
+        requestAnimationFrame(animate);
+      } else {
+        angle = stopAngle;
+        drawWheel(angle);
+        document.getElementById("assignment").innerText = `Du beschenkst: ${receiver}`;
+      }
+    }
+    animate();
+  });
+
 } else {
-  // Admin-Modus: Zuweisungen erstellen
+  // Admin-Modus
   document.getElementById("generateBtn").addEventListener("click", ()=>{
     // Zufällige Zuweisung ohne Gegenseitigkeit
     let others = participants.filter(p => p!==fixedGiver && p!==fixedReceiver);
@@ -41,7 +92,6 @@ if(tokenParam){
       tokenMap[token] = p;
     });
 
-    // Speichern für Teilnehmer-Modus
     localStorage.setItem("assignments", JSON.stringify(assignments));
     localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
 
@@ -53,7 +103,6 @@ if(tokenParam){
       link.href = `?token=${token}`;
       link.target = "_blank";
       link.innerText = `${giver}`;
-      link.style.display = "block";
       linksDiv.appendChild(link);
     }
   });

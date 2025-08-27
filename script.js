@@ -17,42 +17,46 @@ if(tokenParam){
   const drawArea = document.getElementById("drawArea");
   const drawBtn = document.getElementById("drawBtn");
 
-  drawBtn.addEventListener("click", ()=>{
-    drawBtn.disabled = true;
+ drawBtn.addEventListener("click", ()=>{
+  drawBtn.disabled = true;
 
-    let names = [...participants];
-    let currentIndex = 0;
-    let speed = 50; // Startgeschwindigkeit in ms
-    let slowing = false;
-    let lastUpdate = performance.now();
+  let names = [...participants];
+  let currentIndex = 0;
+  let speed = 50; // Startgeschwindigkeit (ms pro Name)
+  const acceleration = 5; // wie stark es langsamer wird
+  let slowing = false;
+  const startTime = performance.now();
+  
+  function animate(now){
+    // aktuelle Zeit seit letztem Update
+    if(!animate.lastTime) animate.lastTime = now;
+    const delta = now - animate.lastTime;
 
-    function animate(now){
-      if(now - lastUpdate >= speed){
-        drawArea.innerText = names[currentIndex];
-        currentIndex = (currentIndex + 1) % names.length;
-        lastUpdate = now;
+    if(delta >= speed){
+      drawArea.innerText = names[currentIndex];
+      currentIndex = (currentIndex + 1) % names.length;
+      animate.lastTime = now;
 
-        if(slowing){
-          speed += 2; // verlangsamen
-        }
-      }
-
-      if(!slowing || speed < 300){
-        requestAnimationFrame(animate);
-      } else {
-        // Animation stoppen und gezogenen Namen anzeigen
-        drawArea.innerText = receiver;
-        drawArea.style.fontSize = "2.5em";
-        drawArea.style.color = "#ff0000";
+      if(slowing){
+        speed += acceleration; // Geschwindigkeit verlangsamen
       }
     }
 
-    animate(performance.now());
+    if(speed < 1000){ // maximale Geschwindigkeit = sehr langsam
+      requestAnimationFrame(animate);
+    } else {
+      // Animation stoppen und gezogenen Namen anzeigen
+      drawArea.innerText = receiver;
+      drawArea.style.fontSize = "2.5em";
+      drawArea.style.color = "#ff0000";
+    }
+  }
 
-    // Nach kurzer Zeit langsamer werden lassen
-    setTimeout(()=>{ slowing = true; }, 1000);
-  });
+  animate(performance.now());
 
+  // Nach 1 Sekunde langsamer werden lassen
+  setTimeout(()=>{ slowing = true; }, 1000);
+});
 } else {
   // Admin-Modus
   document.getElementById("generateBtn").addEventListener("click", ()=>{

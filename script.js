@@ -20,42 +20,35 @@ if(tokenParam){
  drawBtn.addEventListener("click", ()=>{
   drawBtn.disabled = true;
 
-  let names = [...participants];
-  let currentIndex = 0;
-  let speed = 50; // Startgeschwindigkeit (ms pro Name)
-  const acceleration = 5; // wie stark es langsamer wird
-  let slowing = false;
+  const names = [...participants];
+  const totalDuration = 5000; // Gesamtzeit 5 Sekunden
   const startTime = performance.now();
-  
+  const receiverIndex = names.indexOf(receiver);
+  let currentIndex = 0;
+
   function animate(now){
-    // aktuelle Zeit seit letztem Update
-    if(!animate.lastTime) animate.lastTime = now;
-    const delta = now - animate.lastTime;
+    const elapsed = now - startTime;
+    const progress = elapsed / totalDuration; // 0 → 1
 
-    if(delta >= speed){
-      drawArea.innerText = names[currentIndex];
-      currentIndex = (currentIndex + 1) % names.length;
-      animate.lastTime = now;
+    // Berechne Index dynamisch: start schnell, am Ende langsamer
+    // Wir nutzen eine exponentielle Kurve für langsamer werdend
+    const easedProgress = Math.pow(progress, 2); // Quadratische Ease-Out
+    const totalSteps = names.length * 20; // insgesamt ca. 20 Runden
+    currentIndex = Math.floor(easedProgress * totalSteps) % names.length;
 
-      if(slowing){
-        speed += acceleration; // Geschwindigkeit verlangsamen
-      }
-    }
+    drawArea.innerText = names[currentIndex];
 
-    if(speed < 1000){ // maximale Geschwindigkeit = sehr langsam
+    if(progress < 1){
       requestAnimationFrame(animate);
     } else {
-      // Animation stoppen und gezogenen Namen anzeigen
+      // Animation fertig, gezogenen Namen anzeigen
       drawArea.innerText = receiver;
       drawArea.style.fontSize = "2.5em";
       drawArea.style.color = "#ff0000";
     }
   }
 
-  animate(performance.now());
-
-  // Nach 1 Sekunde langsamer werden lassen
-  setTimeout(()=>{ slowing = true; }, 1000);
+  requestAnimationFrame(animate);
 });
 } else {
   // Admin-Modus

@@ -2,31 +2,293 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wichteln 2025 – Los ziehen</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: #333;
+      background: url('images/background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      color: #333;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      color: #333;
+    }
+
+    button {
+      margin: 15px;
+      padding: 12px 24px;
+      font-size: 1.2em;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: rgba(255, 0, 0, 0.85);
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: rgba(200, 0, 0, 0.95);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+
+    #drawArea {
+      font-size: 2em;
+      font-weight: bold;
+      color: #333;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+      margin: 30px 0;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+    }
+
+    #admin {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      border: 2px solid #e9ecef;
+    }
+
+    #participant {
+      padding: 20px;
+      background: #fff;
+      border-radius: 15px;
+    }
+
+    #links {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    #links h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    #links a {
+      display: inline-block;
+      margin: 8px 12px;
+      padding: 10px 20px;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
+    }
+
+    #links a:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+    }
+
+    .festive-decoration {
+      font-size: 2em;
+      margin: 20px 0;
+      animation: sparkle 2s ease-in-out infinite;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+      
+      #drawArea {
+        font-size: 1.8em;
+        min-height: 60px;
+      }
+      
+      button {
+        font-size: 1em;
+        padding: 12px 24px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Wichteln 2025 – Los ziehen</h1>
-
-  <div id="admin">
-    <button id="generateBtn">Zuweisungen erstellen</button>
-    <div id="links"></div>
+      <div class="container">
+    <h1>Wichteln 2025</h1>
+    
+    <div id="admin">
+      <h2>Admin-Bereich</h2>
+      <button id="generateBtn">Zuweisungen erstellen</button>
+      <div id="links"></div>
+    </div>
+    
+    <div id="participant">
+      <h2>Ziehe dein Los</h2>
+      <div id="drawArea">Klicke auf "Los ziehen" um zu starten!</div>
+      <button id="drawBtn">Los ziehen</button>
+    </div>
   </div>
 
-  <div id="participant">
-    <h2>Ziehe dein Los</h2>
-    <div id="drawArea">Hier wird der Name angezeigt</div>
-    <button id="drawBtn">Start</button>
-  </div>
+  <script>
+    const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
+    const fixedGiver = "Jens";
+    const fixedReceiver = "Susanne";
 
-  <h1>Wichteln 2025</h1>
-<button onclick="draw()">Start</button>
+    // Prüfen, ob URL einen Token enthält
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get("token");
 
-<div class="content">
-  <div id="drawArea"></div>
-</div>
+    if(tokenParam) {
+      // Teilnehmer-Modus
+      const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
+      const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
+      const giver = tokenMap[tokenParam];
+      const receiver = assignments[giver];
+      
+      // Admin-Bereich ausblenden
+      document.getElementById("admin").style.display = "none";
+      
+      if (!giver || !receiver) {
+        document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
+        document.getElementById("drawBtn").style.display = "none";
+        return;
+      }
 
-  <script src="script.js"></script>
+      const drawArea = document.getElementById("drawArea");
+      const drawBtn = document.getElementById("drawBtn");
+
+      drawBtn.addEventListener("click", () => {
+        drawBtn.disabled = true;
+        
+        const names = [...participants];
+        const totalDuration = 4000; // 4 Sekunden
+        const startTime = performance.now();
+        let lastChange = startTime;
+        let currentIndex = 0;
+        
+        function animate(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / totalDuration, 1);
+          
+          // Ease-Out: schnell am Anfang, langsam am Ende
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const interval = 50 + eased * 400; // Zeit zwischen Namen
+          
+          if(now - lastChange >= interval) {
+            drawArea.innerText = names[currentIndex];
+            currentIndex = (currentIndex + 1) % names.length;
+            lastChange = now;
+          }
+          
+          if(progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Finale Anzeige
+            setTimeout(() => {
+              drawArea.innerText = receiver;
+              drawArea.style.color = "#ff0000";
+              drawArea.style.fontSize = "2.5em";
+            }, 200);
+          }
+        }
+        
+        requestAnimationFrame(animate);
+      });
+      
+    } else {
+      // Admin-Modus
+      document.getElementById("participant").style.display = "none";
+      
+      document.getElementById("generateBtn").addEventListener("click", () => {
+        // Zufällige Zuweisung ohne Gegenseitigkeit
+        let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
+        let shuffled;
+        
+        do {
+          shuffled = others.slice().sort(() => Math.random() - 0.5);
+        } while(shuffled.some((v, i) => v === others[i]));
+        
+        const assignments = {};
+        assignments[fixedGiver] = fixedReceiver;
+        
+        for(let i = 0; i < others.length; i++) {
+          assignments[others[i]] = shuffled[i];
+        }
+        
+        // Tokens erzeugen
+        const tokenMap = {};
+        participants.forEach(p => {
+          const token = Math.random().toString(36).substr(2, 10);
+          tokenMap[token] = p;
+        });
+        
+        localStorage.setItem("assignments", JSON.stringify(assignments));
+        localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
+        
+        // Links anzeigen
+        const linksDiv = document.getElementById("links");
+        linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
+        
+        for(const [token, giver] of Object.entries(tokenMap)) {
+          const link = document.createElement("a");
+          link.href = `?token=${token}`;
+          link.target = "_blank";
+          link.innerText = giver;
+          linksDiv.appendChild(link);
+        }
+        
+        document.getElementById("generateBtn").innerText = "Zuweisungen erstellt!";
+        document.getElementById("generateBtn").disabled = true;
+        
+        // Button nach 3 Sekunden wieder aktivieren
+        setTimeout(() => {
+          document.getElementById("generateBtn").innerText = "Neue Zuweisungen erstellen";
+          document.getElementById("generateBtn").disabled = false;
+        }, 3000);
+      });
+    }
+  </script>
 </body>
 </html>
-

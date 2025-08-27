@@ -19,30 +19,44 @@ if(tokenParam){
 
   drawBtn.addEventListener("click", ()=>{
     drawBtn.disabled = true;
-    let speed = 50; // Startgeschwindigkeit (ms pro Name)
-    let currentIndex = 0;
-    const shuffledNames = [...participants]; // Für die Animation
-    const interval = setInterval(()=>{
-      drawArea.innerText = shuffledNames[currentIndex];
-      currentIndex = (currentIndex + 1) % shuffledNames.length;
-    }, speed);
 
-    // Langsamer werden lassen
-    let slowdown = 0;
-    const slowDownInterval = setInterval(()=>{
-      slowdown += 1;
-      speed += slowdown; 
-      if(speed > 1000){
-        clearInterval(interval);
-        clearInterval(slowDownInterval);
-        drawArea.innerText = receiver; // gezogener Name
+    let names = [...participants];
+    let currentIndex = 0;
+    let speed = 50; // Startgeschwindigkeit in ms
+    let slowing = false;
+    let lastUpdate = performance.now();
+
+    function animate(now){
+      if(now - lastUpdate >= speed){
+        drawArea.innerText = names[currentIndex];
+        currentIndex = (currentIndex + 1) % names.length;
+        lastUpdate = now;
+
+        if(slowing){
+          speed += 2; // verlangsamen
+        }
       }
-    }, 50);
+
+      if(!slowing || speed < 300){
+        requestAnimationFrame(animate);
+      } else {
+        // Animation stoppen und gezogenen Namen anzeigen
+        drawArea.innerText = receiver;
+        drawArea.style.fontSize = "2.5em";
+        drawArea.style.color = "#ff0000";
+      }
+    }
+
+    animate(performance.now());
+
+    // Nach kurzer Zeit langsamer werden lassen
+    setTimeout(()=>{ slowing = true; }, 1000);
   });
 
 } else {
   // Admin-Modus
   document.getElementById("generateBtn").addEventListener("click", ()=>{
+    // Zufällige Zuweisung ohne Gegenseitigkeit
     let others = participants.filter(p => p!==fixedGiver && p!==fixedReceiver);
     let shuffled;
     do {
@@ -55,6 +69,7 @@ if(tokenParam){
       assignments[others[i]] = shuffled[i];
     }
 
+    // Tokens erzeugen
     const tokenMap = {};
     participants.forEach(p => {
       const token = Math.random().toString(36).substr(2,8);
@@ -64,6 +79,7 @@ if(tokenParam){
     localStorage.setItem("assignments", JSON.stringify(assignments));
     localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
 
+    // Links anzeigen
     const linksDiv = document.getElementById("links");
     linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3>";
     for(const [token, giver] of Object.entries(tokenMap)){

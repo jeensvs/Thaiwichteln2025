@@ -118,3 +118,13 @@ body::after {
   font-size: 1.5em;
   opacity: 0.2;
 }
+body {
+  background-image: url('images/background.jpg'); /* Pfad anpassen */
+  background-size: cover;       /* skaliert, sodass alles gefüllt ist */
+  background-repeat: no-repeat; /* kein Kacheln */
+  background-position: center;  /* Bild schön zentrieren */
+  min-height: 100vh;            /* sicherstellen dass Seite ganze Höhe hat */
+  margin: 0;
+  font-family: "Comic Sans MS", cursive, sans-serif; /* Beispiel */
+}
+

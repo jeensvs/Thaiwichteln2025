@@ -24,20 +24,18 @@ drawBtn.addEventListener("click", ()=>{
   const totalDuration = 5000; // 5 Sekunden
   const receiverIndex = names.indexOf(receiver);
   let startTime = null;
-  let currentIndex = 0;
+  let currentIndex = -1;
 
   function animate(timestamp){
     if(!startTime) startTime = timestamp;
     const elapsed = timestamp - startTime;
     const progress = Math.min(elapsed / totalDuration, 1);
 
-    // Ease-Out für langsamer werdend
-    const eased = Math.pow(progress, 2); 
+    // Richtige Ease-Out: schnell am Anfang, langsam am Ende
+    const eased = 1 - Math.pow(1 - progress, 2);
 
-    // Berechne Index: schneller am Anfang, langsamer am Ende
     const totalSteps = names.length * 10; // ca. 10 Runden
-    const exactStep = eased * totalSteps;
-    const stepIndex = Math.floor(exactStep) % names.length;
+    const stepIndex = Math.floor(eased * totalSteps) % names.length;
 
     if(stepIndex !== currentIndex){
       currentIndex = stepIndex;
@@ -47,7 +45,7 @@ drawBtn.addEventListener("click", ()=>{
     if(progress < 1){
       requestAnimationFrame(animate);
     } else {
-      // Animation fertig
+      // Animation fertig, gezogenen Namen anzeigen
       drawArea.innerText = receiver;
       drawArea.style.fontSize = "2.5em";
       drawArea.style.color = "#ff0000";

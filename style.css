@@ -1,4 +1,90 @@
-body { font-family: Arial, sans-serif; text-align:center; margin:2em; }
-button { padding:0.5em 1em; font-size:1em; margin:1em; }
-#links a { display:block; margin:0.2em 0; }
-#drawArea { font-size:2em; font-weight:bold; margin:2em; height:2em; }
+/* Allgemein */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app {
+  text-align: center;
+  padding: 40px;
+  background: #ffffffcc;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  max-width: 500px;
+  width: 90%;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Bereich für die Namen */
+#drawArea {
+  font-size: 1.5em;
+  margin: 30px auto;
+  padding: 20px;
+  width: 80%;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ccc;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+/* Buttons */
+button {
+  padding: 15px 30px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+#drawBtn {
+  background: #28a745;
+  color: #fff;
+  margin-top: 20px;
+}
+
+#generateBtn {
+  background: #007bff;
+  color: #fff;
+  margin-top: 20px;
+}
+
+/* Links für Admin */
+#links {
+  margin-top: 25px;
+}
+
+#links a {
+  display: inline-block;
+  margin: 5px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #f0f0f0;
+  color: #007bff;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+#links a:hover {
+  background: #e0e0e0;
+}

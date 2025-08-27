@@ -17,26 +17,26 @@ if(tokenParam){
   const drawArea = document.getElementById("drawArea");
   const drawBtn = document.getElementById("drawBtn");
 
- drawBtn.addEventListener("click", ()=>{
+drawBtn.addEventListener("click", ()=>{
   drawBtn.disabled = true;
 
   const names = [...participants];
-  const totalDuration = 5000; // Gesamtzeit 5 Sekunden
+  const totalDuration = 5000; // 5 Sekunden
   const startTime = performance.now();
   const receiverIndex = names.indexOf(receiver);
-  let currentIndex = 0;
 
   function animate(now){
     const elapsed = now - startTime;
-    const progress = elapsed / totalDuration; // 0 → 1
+    let progress = elapsed / totalDuration;
+    if(progress > 1) progress = 1;
 
-    // Berechne Index dynamisch: start schnell, am Ende langsamer
-    // Wir nutzen eine exponentielle Kurve für langsamer werdend
-    const easedProgress = Math.pow(progress, 2); // Quadratische Ease-Out
-    const totalSteps = names.length * 20; // insgesamt ca. 20 Runden
-    currentIndex = Math.floor(easedProgress * totalSteps) % names.length;
+    // Quadratische Ease-Out: schnell am Anfang, langsam am Ende
+    const easedProgress = Math.pow(progress, 2);
 
-    drawArea.innerText = names[currentIndex];
+    // Index berechnen
+    const totalSteps = names.length * 10; // 10 volle Runden
+    const stepIndex = Math.floor(easedProgress * totalSteps) % names.length;
+    drawArea.innerText = names[stepIndex];
 
     if(progress < 1){
       requestAnimationFrame(animate);
@@ -50,6 +50,7 @@ if(tokenParam){
 
   requestAnimationFrame(animate);
 });
+
 } else {
   // Admin-Modus
   document.getElementById("generateBtn").addEventListener("click", ()=>{

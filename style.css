@@ -1,7 +1,7 @@
 /* Allgemein */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  background: linear-gradient(135deg, #fdfbfb, #ebedee);
   min-height: 100vh;
   margin: 0;
   display: flex;
@@ -12,16 +12,18 @@ body {
 #app {
   text-align: center;
   padding: 40px;
-  background: #ffffffcc;
+  background: #ffffffee;
   border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
   max-width: 500px;
   width: 90%;
+  border: 3px solid #c62828; /* weihnachtliches Rot */
 }
 
 h1 {
-  color: #333;
+  color: #2e7d32; /* tannengrün */
   margin-bottom: 30px;
+  font-size: 2em;
 }
 
 /* Bereich für die Namen */
@@ -34,10 +36,10 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #ccc;
+  border: 2px dashed #c62828;
   border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background: #fffdf7;
+  box-shadow: inset 0 0 10px rgba(198,40,40,0.15);
   transition: all 0.3s ease;
 }
 
@@ -49,24 +51,33 @@ button {
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.3s ease;
+  transition: transform 0.2s ease, background 0.3s ease;
 }
 
 button:hover {
   transform: scale(1.05);
-  opacity: 0.9;
 }
 
+/* Grüner Button für Ziehung */
 #drawBtn {
-  background: #28a745;
+  background: #2e7d32;
   color: #fff;
   margin-top: 20px;
 }
 
+#drawBtn:hover {
+  background: #388e3c;
+}
+
+/* Blauer Button für Admin */
 #generateBtn {
-  background: #007bff;
+  background: #1565c0;
   color: #fff;
   margin-top: 20px;
+}
+
+#generateBtn:hover {
+  background: #1976d2;
 }
 
 /* Links für Admin */
@@ -79,12 +90,31 @@ button:hover {
   margin: 5px;
   padding: 8px 14px;
   border-radius: 8px;
-  background: #f0f0f0;
-  color: #007bff;
+  background: #fff8f0;
+  border: 1px solid #c62828;
+  color: #c62828;
   text-decoration: none;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 #links a:hover {
-  background: #e0e0e0;
+  background: #ffe0e0;
+}
+
+/* Festliche Extras */
+body::before {
+  content: "🎁 🎄 🎅 ❄️";
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-size: 1.5em;
+  opacity: 0.2;
+}
+body::after {
+  content: "🎅 ❄️ 🎁 🎄";
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  opacity: 0.2;
 }

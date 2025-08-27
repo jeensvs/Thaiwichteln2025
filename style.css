@@ -3,15 +3,13 @@ body {
   padding: 0;
   font-family: Arial, sans-serif;
   text-align: center;
-  background: url('images/background.jpg') no-repeat center 30% fixed;
-  background-size: cover;
   color: black;
+  background: white; /* oberer Bereich bleibt weiß */
 }
 
 h1 {
   margin-top: 50px;
   font-size: 2.5em;
-  text-shadow: 1px 1px 3px rgba(255,255,255,0.6); /* etwas Kontrast, aber dezent */
 }
 
 button {
@@ -30,8 +28,15 @@ button:hover {
   background-color: rgba(200, 0, 0, 0.95);
 }
 
+.content {
+  margin-top: 60px; /* Abstand unter Start-Button */
+  min-height: 100vh;
+  background: url('images/background.jpg') no-repeat center top fixed;
+  background-size: cover;
+  padding-top: 40px;
+}
+
 #drawArea {
-  margin-top: 40px;
   font-size: 2em;
   font-weight: bold;
   color: black;

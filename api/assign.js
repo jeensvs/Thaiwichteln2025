@@ -1,29 +1,24 @@
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
 const fixedGiver = "Jens";
 const fixedReceiver = "Susanne";
 
-// Einfach im Speicher speichern für Demo
-let assignments = {};
-let tokens = {};
-
-module.exports = (req, res) => {
-  // Zufällige Zuweisung ohne Gegenseitigkeit
+module.exports = (req,res) => {
   let others = participants.filter(p => p!==fixedGiver && p!==fixedReceiver);
   const shuffled = others.slice().sort(()=>Math.random()-0.5);
-  assignments = {};
-  assignments[fixedGiver] = fixedReceiver;
+
+  const result = {};
+  result[fixedGiver] = fixedReceiver;
   for(let i=0;i<others.length;i++){
-    assignments[others[i]] = shuffled[i];
+    result[others[i]] = shuffled[i];
   }
 
-  // Tokens erstellen
-  tokens = {};
-  for(const giver of participants){
-    const token = crypto.randomBytes(8).toString('hex');
-    tokens[token] = giver;
-  }
+  // Tokens generieren
+  const tokens = {};
+  participants.forEach(p => {
+    tokens[p] = crypto.randomBytes(8).toString("hex");
+  });
 
-  res.status(200).json({ message: "Zuweisungen erstellt", tokens });
-}
+  res.status(200).json({assignments: result, tokens});
+};

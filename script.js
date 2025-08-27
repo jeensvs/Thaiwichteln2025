@@ -3,7 +3,7 @@ const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik",
 const fixedGiver = "Jens";
 const fixedReceiver = "Susanne";
 
-// Prüfen auf Token
+// Prüfen, ob URL einen Token enthält
 const urlParams = new URLSearchParams(window.location.search);
 const tokenParam = urlParams.get("token");
 
@@ -20,12 +20,13 @@ if(tokenParam){
   const canvas = document.getElementById("wheel");
   const ctx = canvas.getContext("2d");
   const radius = canvas.width / 2;
-  const names = participants.slice(); // alle Namen für Rad
+  const names = participants.slice();
 
   // Rad zeichnen
   function drawWheel(angle=0){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const arc = (2 * Math.PI) / names.length;
+
     for(let i=0;i<names.length;i++){
       ctx.beginPath();
       ctx.moveTo(radius,radius);
@@ -43,6 +44,15 @@ if(tokenParam){
       ctx.fillText(names[i], radius-10, 0);
       ctx.restore();
     }
+
+    // Pfeil oben zeichnen
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(radius-10,0);
+    ctx.lineTo(radius+10,0);
+    ctx.lineTo(radius,20);
+    ctx.closePath();
+    ctx.fill();
   }
 
   drawWheel();
@@ -51,17 +61,20 @@ if(tokenParam){
   document.getElementById("spinBtn").addEventListener("click", ()=>{
     let angle = 0;
     let speed = 0.3 + Math.random()*0.5; // Startgeschwindigkeit
-    let stopAngle = (names.indexOf(receiver) + 0.5) * (2*Math.PI)/names.length; // Ziel
+    let stopAngle = (names.indexOf(receiver) + 0.5) * (2*Math.PI)/names.length;
 
     function animate(){
       speed *= 0.97; // verlangsamen
       angle += speed;
       drawWheel(angle);
-      // Wenn Geschwindigkeit sehr klein und fast auf Ziel
-      if(speed > 0.001 || Math.abs((angle % (2*Math.PI)) - stopAngle) > 0.05){
+
+      // Prüfen ob das Rad fast am Ziel ist
+      let currentIndex = Math.floor(((2*Math.PI - (angle % (2*Math.PI))) / (2*Math.PI)) * names.length) % names.length;
+
+      if(speed > 0.001 || currentIndex !== names.indexOf(receiver)){
         requestAnimationFrame(animate);
       } else {
-        angle = stopAngle;
+        angle = 2*Math.PI - (names.indexOf(receiver)+0.5)*(2*Math.PI)/names.length;
         drawWheel(angle);
         document.getElementById("assignment").innerText = `Du beschenkst: ${receiver}`;
       }

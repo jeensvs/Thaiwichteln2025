@@ -1,5 +1,4 @@
-body { font-family: Arial, sans-serif; margin: 2em; text-align: center; }
-button { padding: 0.5em 1em; font-size: 1em; margin: 1em; }
-#links a { display: block; margin: 0.2em 0; }
-#assignment { margin-top: 1em; font-weight: bold; font-size: 1.2em; }
-canvas { border: 2px solid #333; border-radius: 50%; margin-top: 1em; }
+body { font-family: Arial, sans-serif; text-align:center; margin:2em; }
+button { padding:0.5em 1em; font-size:1em; margin:1em; }
+#links a { display:block; margin:0.2em 0; }
+#drawArea { font-size:2em; font-weight:bold; margin:2em; height:2em; }

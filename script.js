@@ -22,26 +22,32 @@ drawBtn.addEventListener("click", ()=>{
 
   const names = [...participants];
   const totalDuration = 5000; // 5 Sekunden
-  const startTime = performance.now();
   const receiverIndex = names.indexOf(receiver);
+  let startTime = null;
+  let currentIndex = 0;
 
-  function animate(now){
-    const elapsed = now - startTime;
-    let progress = elapsed / totalDuration;
-    if(progress > 1) progress = 1;
+  function animate(timestamp){
+    if(!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / totalDuration, 1);
 
-    // Quadratische Ease-Out: schnell am Anfang, langsam am Ende
-    const easedProgress = Math.pow(progress, 2);
+    // Ease-Out für langsamer werdend
+    const eased = Math.pow(progress, 2); 
 
-    // Index berechnen
-    const totalSteps = names.length * 10; // 10 volle Runden
-    const stepIndex = Math.floor(easedProgress * totalSteps) % names.length;
-    drawArea.innerText = names[stepIndex];
+    // Berechne Index: schneller am Anfang, langsamer am Ende
+    const totalSteps = names.length * 10; // ca. 10 Runden
+    const exactStep = eased * totalSteps;
+    const stepIndex = Math.floor(exactStep) % names.length;
+
+    if(stepIndex !== currentIndex){
+      currentIndex = stepIndex;
+      drawArea.innerText = names[currentIndex];
+    }
 
     if(progress < 1){
       requestAnimationFrame(animate);
     } else {
-      // Animation fertig, gezogenen Namen anzeigen
+      // Animation fertig
       drawArea.innerText = receiver;
       drawArea.style.fontSize = "2.5em";
       drawArea.style.color = "#ff0000";
@@ -50,6 +56,7 @@ drawBtn.addEventListener("click", ()=>{
 
   requestAnimationFrame(animate);
 });
+
 
 } else {
   // Admin-Modus

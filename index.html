@@ -7,23 +7,17 @@
 </head>
 <body>
   <h1>Wichteln 2025</h1>
-  <button id="assignBtn">Zuweisungen erstellen</button>
+  
+  <div id="admin">
+    <button id="generateBtn">Zuweisungen erstellen</button>
+    <div id="links"></div>
+  </div>
 
-  <div id="result"></div>
+  <div id="participant">
+    <h2>Deine Zuweisung</h2>
+    <div id="assignment"></div>
+  </div>
 
-  <script>
-    document.getElementById("assignBtn").addEventListener("click", async () => {
-      // API aufrufen
-      const response = await fetch("/api/assign", { method: "GET" });
-const data = await response.json();
-
-      let html = "<h2>Zuweisungen:</h2><ul>";
-      for(const [giver, receiver] of Object.entries(data)){
-        html += `<li>${giver} → ${receiver}</li>`;
-      }
-      html += "</ul>";
-      document.getElementById("result").innerHTML = html;
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

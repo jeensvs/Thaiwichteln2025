@@ -251,6 +251,34 @@
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
+        // Layout für Token-Seite anpassen
+        const contentArea = document.querySelector('.content-area');
+        const backgroundArea = document.querySelector('.background-area');
+        
+        // Content-Area für Header anpassen
+        contentArea.innerHTML = `
+          <div class="container">
+            <h1>Wichteln 2025</h1>
+          </div>
+        `;
+        
+        // Background-Area für Losziehen anpassen
+        backgroundArea.style.height = 'calc(100vh - 120px)'; // Platz für Header
+        backgroundArea.style.backgroundPosition = 'center center';
+        backgroundArea.style.display = 'flex';
+        backgroundArea.style.alignItems = 'center';
+        backgroundArea.style.justifyContent = 'center';
+        
+        backgroundArea.innerHTML = `
+          <div class="draw-container">
+            <div id="participant">
+              <h2>Ziehe dein Los</h2>
+              <div id="drawArea">Klicke auf "Los ziehen" um zu starten!</div>
+              <button id="drawBtn">Los ziehen</button>
+            </div>
+          </div>
+        `;
+        
         if (!giver || !receiver) {
           document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
           document.getElementById("drawBtn").style.display = "none";
@@ -301,7 +329,9 @@
       } else {
         // Admin-Modus
         console.log("Admin mode");
-        document.getElementById("participant").style.display = "none";
+        
+        // Participant-Bereich für Admin-Seite ausblenden
+        document.querySelector('.background-area').style.display = 'none';
         
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {

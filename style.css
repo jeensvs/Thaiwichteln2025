@@ -1,14 +1,4 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 2em;
-}
-
-button {
-  margin-top: 1em;
-  padding: 0.5em 1em;
-  font-size: 1em;
-}
-
-#result {
-  margin-top: 2em;
-}
+body { font-family: Arial, sans-serif; margin: 2em; }
+button { padding: 0.5em 1em; font-size: 1em; }
+#links { margin-top: 1em; }
+#assignment { margin-top: 1em; font-weight: bold; font-size: 1.2em; }

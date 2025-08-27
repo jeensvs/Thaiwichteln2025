@@ -3,7 +3,7 @@ body {
   padding: 0;
   font-family: Arial, sans-serif;
   text-align: center;
-  background: url('images/background.jpg') no-repeat center center fixed;
+  background: url('background.jpg') no-repeat center center fixed;
   background-size: cover;
   color: white;
 }
@@ -36,3 +36,4 @@ button:hover {
   font-weight: bold;
   text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
 }
+

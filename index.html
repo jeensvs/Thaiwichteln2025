@@ -303,31 +303,45 @@
         }
 
         function generateAssignments() {
-          const assignments = {};
-          const remaining = participants.filter(p => p !== fixedGiver);
-          assignments[fixedGiver] = fixedReceiver;
+  const assignments = {};
+  const availableReceivers = participants.slice(); // alle Teilnehmer verfügbar
 
-          let availableReceivers = participants.filter(p => p !== fixedGiver);
+  // Jens zieht immer Susanne
+  assignments[fixedGiver] = fixedReceiver;
+  const indexFixed = availableReceivers.indexOf(fixedReceiver);
+  if(indexFixed > -1) availableReceivers.splice(indexFixed, 1); // Susanne aus Liste entfernen
 
-          for(let giver of remaining) {
-            let possibleReceivers = availableReceivers.filter(r => {
-              if(r === giver) return false;
-              if(forbiddenPairs.some(pair => pair[0] === giver && pair[1] === r)) return false;
-              if(assignments[r] === giver) return false;
-              return true;
-            });
+  // restliche Teilnehmer
+  const remainingGivers = participants.filter(p => p !== fixedGiver);
 
-            if(possibleReceivers.length === 0) return generateAssignments();
-            const receiver = possibleReceivers[Math.floor(Math.random() * possibleReceivers.length)];
-            assignments[giver] = receiver;
-            availableReceivers = availableReceivers.filter(r => r !== receiver);
-          }
+  for(let giver of remainingGivers) {
+    // mögliche Receiver für diesen Giver
+    let possibleReceivers = availableReceivers.filter(r => {
+      if(r === giver) return false; // nicht sich selbst
+      if(forbiddenPairs.some(pair => pair[0] === giver && pair[1] === r)) return false; // keine Paare
+      if(assignments[r] === giver) return false; // keine gegenseitige Ziehung
+      return true;
+    });
 
-          return assignments;
-        }
+    if(possibleReceivers.length === 0) {
+      // keine Lösung -> kompletten Versuch neu starten
+      return generateAssignments();
+    }
+
+    const receiver = possibleReceivers[Math.floor(Math.random() * possibleReceivers.length)];
+    assignments[giver] = receiver;
+
+    // Receiver aus verfügbarer Liste entfernen
+    const index = availableReceivers.indexOf(receiver);
+    if(index > -1) availableReceivers.splice(index, 1);
+  }
+
+  return assignments;
+}
       }
     });
   </script>
 </body>
 </html>
+
 

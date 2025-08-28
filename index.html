@@ -33,10 +33,9 @@
     }
 
     .background-area {
-      background: url('images/background.jpg') no-repeat center 20%;
-      background-size: 90% auto; /* Breite 90%, Höhe automatisch */
-  background-repeat: no-repeat;
-      min-height: 100vh; /* geändert von height:100vh, damit Scroll möglich */
+      background: url('images/background.jpg') no-repeat center 20%; /* Bild nach oben verschoben */
+      background-size: 90% auto; /* Bild etwas kleiner */
+      min-height: 100vh; 
       position: relative;
       display: flex;
       align-items: flex-end;
@@ -47,7 +46,11 @@
       overflow-x: hidden;
     }
 
-    /* --- Rest deines originalen CSS bleibt unverändert --- */
+    /* --- Änderung: Button nach oben verschieben --- */
+    #participant {
+      margin-top: 30px; /* Abstand vom oberen Rand der background-area, Button höher */
+    }
+
     .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.95);
                  border-radius: 10px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
                  width: 100%; box-sizing: border-box; }
@@ -75,14 +78,11 @@
       #drawArea { font-size: 1.3em; min-height: 50px; margin: 10px 0; padding: 8px; }
       button { font-size: 1em; padding: 10px 20px; margin: 10px 5px; }
       #admin { padding: 15px; margin-bottom: 20px; }
-      #participant { padding: 15px; }
+      #participant { padding: 15px; margin-top: 30px; } /* auch hier Button auf Mobile verschoben */
     }
-
-    #participant {
-  margin-top: 20px; /* Abstand vom oberen Rand des Containers */
-}
   </style>
 </head>
+
 
 <body>
   <div class="content-area">
@@ -309,6 +309,7 @@
   </script>
 </body>
 </html>
+
 
 
 

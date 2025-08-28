@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wichteln 2025 – Los ziehen</title>
   <style>
+    html {
+      overflow-x: hidden;
+      overflow-y: hidden;
+      width: 100%;
+      height: 100vh;
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -12,13 +19,15 @@
       text-align: center;
       color: #333;
       overflow-x: hidden;
+      overflow-y: hidden;
       width: 100%;
+      height: 100vh;
       max-width: 100vw;
     }
 
     .content-area {
       background: white;
-      padding: 20px;
+      padding: 8px 20px;
       position: relative;
       z-index: 2;
     }
@@ -42,9 +51,10 @@
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
       border-radius: 10px;
-      padding: 30px;
+      padding: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       width: 100%;
+      box-sizing: border-box;
     }
 
     .draw-container {
@@ -56,7 +66,8 @@
     }
 
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 8px;
+      margin-top: 5px;
       font-size: 2em;
       color: #333;
     }
@@ -115,6 +126,28 @@
       border: 2px solid #e9ecef;
     }
 
+    #admin-login {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+    }
+
+    #admin-login input {
+      padding: 10px 15px;
+      font-size: 1.1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      text-align: center;
+    }
+
+    #admin-login input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
     #participant {
       padding: 0;
       background: transparent;
@@ -159,18 +192,18 @@
 
     @media (max-width: 600px) {
       .content-area {
-        padding: 15px;
+        padding: 5px;
       }
       
       .background-area {
-        height: 100vh;
+        height: calc(100vh - 60px);
         padding: 10px;
         max-width: 100vw;
         overflow-x: hidden;
       }
       
       .container {
-        padding: 15px;
+        padding: 10px;
         margin: 0;
         max-width: 100%;
         width: 100%;
@@ -184,8 +217,8 @@
       }
       
       h1 {
-        font-size: 1.8em;
-        margin-bottom: 15px;
+        font-size: 1.4em;
+        margin: 5px 0;
       }
       
       h2 {
@@ -222,7 +255,15 @@
     <div class="container">
       <h1>Wichteln 2025</h1>
       
-      <div id="admin">
+      <div id="admin-login">
+        <h2>Admin-Zugang</h2>
+        <input type="password" id="admin-password" placeholder="Passwort eingeben">
+        <br>
+        <button id="admin-login-btn">Einloggen</button>
+        <div id="login-error" style="color: red; margin-top: 10px; display: none;">Falsches Passwort!</div>
+      </div>
+      
+      <div id="admin" style="display: none;">
         <h2>Admin-Bereich</h2>
         <button id="generateBtn">Zuweisungen erstellen</button>
         <div id="links"></div>
@@ -248,35 +289,64 @@
     // Prüfen, ob URL einen Token enthält
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
+    const giverParam = urlParams.get("giver");
+    const receiverParam = urlParams.get("receiver");
+
+    // Einfache Dekodierung (Base64)
+    function decode(str) {
+      try {
+        return atob(str);
+      } catch(e) {
+        return null;
+      }
+    }
 
     // Warten bis DOM geladen ist
     document.addEventListener('DOMContentLoaded', function() {
       console.log("DOM loaded, tokenParam:", tokenParam);
       
       if(tokenParam) {
-        // Teilnehmer-Modus
+        // Teilnehmer-Modus - Token aus URL dekodieren
         console.log("Participant mode");
-        const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
-        const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
-        const giver = tokenMap[tokenParam];
-        const receiver = assignments[giver];
+        console.log("TokenParam:", tokenParam);
+        
+        const giver = decode(giverParam);
+        const receiver = decode(receiverParam);
+        
+        console.log("Giver:", giver);
+        console.log("Receiver:", receiver);
         
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
-        // Layout für Token-Seite anpassen
+        if (!giver || !receiver || !participants.includes(giver) || !participants.includes(receiver)) {
+          // Fehlerfall - nur Fehlermeldung anzeigen
+          const contentArea = document.querySelector('.content-area');
+          contentArea.innerHTML = `
+            <div class="container">
+              <h1>Wichteln 2025</h1>
+              <p style="color: red; font-size: 1.2em;">Ungültiger Link! Bitte Admin kontaktieren.</p>
+            </div>
+          `;
+          
+          document.querySelector('.background-area').style.display = 'none';
+          return;
+        }
+        
+        // Erfolgreicher Token - personalisierte Anzeige
         const contentArea = document.querySelector('.content-area');
         const backgroundArea = document.querySelector('.background-area');
         
         // Content-Area für Header anpassen
         contentArea.innerHTML = `
           <div class="container">
-            <h1>Wichteln 2025</h1>
+            <h1>Hallo ${giver}, ziehe deinen Wichtel</h1>
           </div>
         `;
+
         
         // Background-Area für Losziehen anpassen
-        backgroundArea.style.height = 'calc(100vh - 120px)'; // Platz für Header
+        backgroundArea.style.height = 'calc(100vh - 80px)'; // Noch weniger Platz für Header
         backgroundArea.style.backgroundPosition = 'center center';
         backgroundArea.style.display = 'flex';
         backgroundArea.style.alignItems = 'center';
@@ -290,12 +360,6 @@
             </div>
           </div>
         `;
-        
-        if (!giver || !receiver) {
-          document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
-          document.getElementById("drawBtn").style.display = "none";
-          return;
-        }
 
         const drawArea = document.getElementById("drawArea");
         const drawBtn = document.getElementById("drawBtn");
@@ -310,7 +374,7 @@
           drawArea.style.padding = "15px";
           
           const names = [...participants];
-          const totalDuration = 4000; // 4 Sekunden
+          const totalDuration = 6000; // 6 Sekunden statt 4
           const startTime = performance.now();
           let lastChange = startTime;
           let currentIndex = 0;
@@ -319,8 +383,8 @@
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / totalDuration, 1);
             
-            // Ease-Out: schnell am Anfang, langsam am Ende
-            const eased = 1 - Math.pow(1 - progress, 3);
+            // Ease-Out angepasst: längere schnelle Phase
+            const eased = progress < 0.6 ? progress * 1.2 : 0.72 + (1 - Math.pow(1 - ((progress - 0.6) / 0.4), 4)) * 0.28;
             const interval = 50 + eased * 400; // Zeit zwischen Namen
             
             if(now - lastChange >= interval) {
@@ -351,6 +415,44 @@
         // Participant-Bereich für Admin-Seite ausblenden
         document.querySelector('.background-area').style.display = 'none';
         
+        // Admin-Login Funktionalität
+        const adminPassword = document.getElementById('admin-password');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const loginError = document.getElementById('login-error');
+        const adminSection = document.getElementById('admin');
+        const adminLoginSection = document.getElementById('admin-login');
+        
+        // Enter-Taste im Passwort-Feld
+        adminPassword.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            checkPassword();
+          }
+        });
+        
+        // Login-Button
+        adminLoginBtn.addEventListener('click', checkPassword);
+        
+        function checkPassword() {
+          if (adminPassword.value === 'Jens') {
+            adminLoginSection.style.display = 'none';
+            adminSection.style.display = 'block';
+            loginError.style.display = 'none';
+            
+            // Admin-Session merken
+            sessionStorage.setItem('admin-logged-in', 'true');
+          } else {
+            loginError.style.display = 'block';
+            adminPassword.value = '';
+            adminPassword.focus();
+          }
+        }
+        
+        // Prüfen ob bereits eingeloggt
+        if (sessionStorage.getItem('admin-logged-in') === 'true') {
+          adminLoginSection.style.display = 'none';
+          adminSection.style.display = 'block';
+        }
+        
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {
           generateBtn.addEventListener("click", function() {
@@ -373,23 +475,16 @@
             
             console.log("Assignments:", assignments); // Debug
             
-            // Tokens erzeugen
-            const tokenMap = {};
-            participants.forEach(p => {
-              const token = Math.random().toString(36).substr(2, 10);
-              tokenMap[token] = p;
-            });
-            
-            console.log("TokenMap:", tokenMap); // Debug
-            
-            localStorage.setItem("assignments", JSON.stringify(assignments));
-            localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
+            // Einfache Kodierung (Base64) für URL-Parameter
+            function encode(str) {
+              return btoa(str);
+            }
             
             // Links anzeigen
             const linksDiv = document.getElementById("links");
             linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
             
-            for(const [token, giver] of Object.entries(tokenMap)) {
+            for(const [giver, receiver] of Object.entries(assignments)) {
               const linkWrapper = document.createElement("div");
               linkWrapper.style.marginBottom = "10px";
               
@@ -397,7 +492,10 @@
               label.innerText = giver + ": ";
               
               const link = document.createElement("a");
-              link.href = `${window.location.origin}${window.location.pathname}?token=${token}`;
+              const encodedGiver = encode(giver);
+              const encodedReceiver = encode(receiver);
+              const randomToken = Math.random().toString(36).substr(2, 8);
+              link.href = `${window.location.origin}${window.location.pathname}?token=${randomToken}&giver=${encodedGiver}&receiver=${encodedReceiver}`;
               link.target = "_blank";
               link.innerText = "Los ziehen";
               

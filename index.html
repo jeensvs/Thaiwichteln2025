@@ -286,7 +286,8 @@
     const fixedGiver = "Jens";
     const fixedReceiver = "Susanne";
 
-    // Sichere Token-Zuweisungen - diese werden bei der Generierung erstellt
+    // Sichere Token-Zuweisungen - hardcoded für Demo-Zwecke
+    // In einer echten App würden diese auf einem Server gespeichert
     let tokenAssignments = {};
 
     // Prüfen, ob URL einen Token enthält
@@ -298,6 +299,38 @@
       return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
     }
 
+    // Token-zu-Zuweisung Konvertierung (vereinfachte Demo-Lösung)
+    function createTokenFromAssignment(giver, receiver, seed) {
+      // Verwende einen Seed für konsistente Token-Generierung
+      const giverIndex = participants.indexOf(giver);
+      const receiverIndex = participants.indexOf(receiver);
+      const combined = (giverIndex << 4) | receiverIndex; // Bit-Verschiebung für Kombination
+      const tokenPart = combined.toString(36).padStart(2, '0');
+      const seedPart = seed.toString(36).substr(2, 6);
+      return seedPart + tokenPart + Math.random().toString(36).substr(2, 4);
+    }
+
+    function decodeTokenToAssignment(token) {
+      try {
+        // Extrahiere den relevanten Teil des Tokens
+        const tokenPart = token.substr(6, 2); // Position 6-7
+        const combined = parseInt(tokenPart, 36);
+        const giverIndex = (combined >> 4) & 0xF; // Obere 4 Bits
+        const receiverIndex = combined & 0xF; // Untere 4 Bits
+        
+        if (giverIndex >= 0 && giverIndex < participants.length && 
+            receiverIndex >= 0 && receiverIndex < participants.length) {
+          return {
+            giver: participants[giverIndex],
+            receiver: participants[receiverIndex]
+          };
+        }
+      } catch (e) {
+        console.error("Token decode error:", e);
+      }
+      return null;
+    }
+
     // Warten bis DOM geladen ist
     document.addEventListener('DOMContentLoaded', function() {
       console.log("DOM loaded, tokenParam:", tokenParam);
@@ -306,14 +339,11 @@
         // Teilnehmer-Modus - Token prüfen
         console.log("Participant mode");
         
-        // Hier würden normalerweise die Zuweisungen von einem Server kommen
-        // Für diese Demo nutzen wir eine einfache Lösung mit localStorage
-        const savedAssignments = localStorage.getItem('wichteln-assignments');
-        if (savedAssignments) {
-          tokenAssignments = JSON.parse(savedAssignments);
-        }
+        // Da wir keinen Server haben, verwenden wir eine einfache Token-zu-Index Konvertierung
+        // Dies ist nur für Demo-Zwecke - in einer echten App sollten die Daten auf einem Server liegen
+        const tokenData = decodeTokenToAssignment(tokenParam);
         
-        const assignment = tokenAssignments[tokenParam];
+        const assignment = tokenData;
         
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
@@ -476,8 +506,8 @@
             
             console.log("Assignments:", assignments);
             
-            // Neue Token-Zuweisungen erstellen
-            tokenAssignments = {};
+            // Neue Token-Zuweisungen erstellen mit festem Seed für Konsistenz
+            const seed = Date.now(); // Fester Seed für diese Generierung
             
             // Links anzeigen
             const linksDiv = document.getElementById("links");
@@ -492,9 +522,8 @@
               
               const link = document.createElement("a");
               
-              // Sicheren Token generieren
-              const secureToken = generateSecureToken();
-              tokenAssignments[secureToken] = { giver: giver, receiver: receiver };
+              // Token generieren der auf jedem Gerät dekodiert werden kann
+              const secureToken = createTokenFromAssignment(giver, receiver, seed);
               
               // Saubere URL nur mit Token
               link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
@@ -506,8 +535,7 @@
               linksDiv.appendChild(linkWrapper);
             }
             
-            // Token-Zuweisungen speichern (in einer echten App würde das auf dem Server passieren)
-            localStorage.setItem('wichteln-assignments', JSON.stringify(tokenAssignments));
+            // Keine localStorage-Speicherung mehr nötig - Token sind selbst-dekodierend
             
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;

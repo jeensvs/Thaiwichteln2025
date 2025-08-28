@@ -88,7 +88,6 @@
     const fixedGiver = "Jens";
     const fixedReceiver = "Susanne";
 
-    // Paare, die sich nicht beschenken dürfen
     const forbiddenPairs = [
       ["Claus", "Susanne"], ["Susanne", "Claus"],
       ["Ole", "Inga"], ["Inga", "Ole"],
@@ -96,15 +95,9 @@
       ["Caroline", "Jens"], ["Jens", "Caroline"],
     ];
 
-    // Token-Zuweisungen - nur Demo
     let tokenAssignments = {};
-
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
-
-    function generateSecureToken() {
-      return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
-    }
 
     function createTokenFromAssignment(giver, receiver, seed) {
       const giverIndex = participants.indexOf(giver);
@@ -159,38 +152,52 @@
     document.addEventListener('DOMContentLoaded', function() {
       if(tokenParam) {
         // Teilnehmer-Modus
-        const tokenData = decodeTokenToAssignment(tokenParam);
-        const assignment = tokenData;
+        const assignment = decodeTokenToAssignment(tokenParam);
         document.getElementById("admin").style.display = "none";
-        if (!assignment || !assignment.giver || !assignment.receiver) {
-          const contentArea = document.querySelector('.content-area');
-          contentArea.innerHTML = `<div class="container"><h1>Wichteln 2025</h1><p style="color: red; font-size: 1.2em;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p></div>`;
+
+        if (!assignment) {
+          document.querySelector('.content-area').innerHTML =
+            `<div class="container"><h1>Wichteln 2025</h1><p style="color:red;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p></div>`;
           document.querySelector('.background-area').style.display = 'none';
           return;
         }
-        const giver = assignment.giver;
-        const receiver = assignment.receiver;
-        const contentArea = document.querySelector('.content-area');
+
+        const {giver, receiver} = assignment;
+        document.querySelector('.content-area').innerHTML =
+          `<div class="container"><h1>Hallo ${giver}, ziehe deinen Wichtel</h1></div>`;
+
         const backgroundArea = document.querySelector('.background-area');
-        contentArea.innerHTML = `<div class="container"><h1>Hallo ${giver}, ziehe deinen Wichtel</h1></div>`;
+        backgroundArea.style.display = 'flex';
         backgroundArea.style.height = 'calc(100vh - 80px)';
-        backgroundArea.innerHTML = `<div class="draw-container"><div id="participant"><div id="drawArea"></div><button id="drawBtn">Los ziehen</button></div></div>`;
+        backgroundArea.style.alignItems = 'center';
+        backgroundArea.style.justifyContent = 'center';
+        backgroundArea.innerHTML = `
+          <div class="draw-container" style="text-align:center;">
+            <div id="participant">
+              <h2>Dein Los</h2>
+              <div id="drawArea"></div>
+              <button id="drawBtn">Los ziehen</button>
+            </div>
+          </div>
+        `;
+
         const drawArea = document.getElementById("drawArea");
         const drawBtn = document.getElementById("drawBtn");
+
         drawBtn.addEventListener("click", () => {
           drawBtn.disabled = true;
-          drawArea.style.background = "rgba(255, 255, 255, 0.8)";
+          drawArea.style.background = "rgba(255,255,255,0.8)";
           drawArea.style.borderRadius = "10px";
           drawArea.style.padding = "15px";
           const names = [...participants];
           const totalDuration = 6000;
           const startTime = performance.now();
-          let lastChange = startTime;
-          let currentIndex = 0;
+          let lastChange = startTime, currentIndex = 0;
           function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / totalDuration, 1);
-            const eased = progress < 0.6 ? progress * 1.2 : 0.72 + (1 - Math.pow(1 - ((progress - 0.6) / 0.4), 4)) * 0.28;
+            const eased = progress < 0.6 ? progress * 1.2
+                        : 0.72 + (1 - Math.pow(1 - ((progress - 0.6)/0.4),4))*0.28;
             const interval = 50 + eased * 400;
             if(now - lastChange >= interval) {
               drawArea.innerText = names[currentIndex];
@@ -209,6 +216,7 @@
           }
           requestAnimationFrame(animate);
         });
+
       } else {
         // Admin-Modus
         document.querySelector('.background-area').style.display = 'none';
@@ -217,8 +225,7 @@
         const loginError = document.getElementById('login-error');
         const adminSection = document.getElementById('admin');
         const adminLoginSection = document.getElementById('admin-login');
-        adminPassword.addEventListener('keypress', function(e) { if (e.key === 'Enter') { checkPassword(); } });
-        adminLoginBtn.addEventListener('click', checkPassword);
+
         function checkPassword() {
           if (adminPassword.value === 'Jens') {
             adminLoginSection.style.display = 'none';
@@ -231,10 +238,14 @@
             adminPassword.focus();
           }
         }
+        adminPassword.addEventListener('keypress', e => { if(e.key==='Enter') checkPassword(); });
+        adminLoginBtn.addEventListener('click', checkPassword);
+
         if (sessionStorage.getItem('admin-logged-in') === 'true') {
           adminLoginSection.style.display = 'none';
           adminSection.style.display = 'block';
         }
+
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {
           generateBtn.addEventListener("click", function() {
@@ -258,10 +269,7 @@
             }
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;
-            setTimeout(() => {
-              generateBtn.innerText = "Neue Zuweisungen erstellen";
-              generateBtn.disabled = false;
-            }, 5000);
+            setTimeout(() => { generateBtn.innerText = "Neue Zuweisungen erstellen"; generateBtn.disabled = false; }, 5000);
           });
         }
       }

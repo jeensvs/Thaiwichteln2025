@@ -297,15 +297,38 @@
       if(tokenParam) {
         // Teilnehmer-Modus
         console.log("Participant mode");
+        console.log("TokenParam:", tokenParam);
+        
         const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
         const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
+        
+        console.log("TokenMap:", tokenMap);
+        console.log("Assignments:", assignments);
+        
         const giver = tokenMap[tokenParam];
         const receiver = assignments[giver];
+        
+        console.log("Giver:", giver);
+        console.log("Receiver:", receiver);
         
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
-        // Layout für Token-Seite anpassen
+        if (!giver || !receiver) {
+          // Fehlerfall - nur Fehlermeldung anzeigen
+          const contentArea = document.querySelector('.content-area');
+          contentArea.innerHTML = `
+            <div class="container">
+              <h1>Wichteln 2025</h1>
+              <p style="color: red; font-size: 1.2em;">Ungültiger Link! Bitte Admin kontaktieren.</p>
+            </div>
+          `;
+          
+          document.querySelector('.background-area').style.display = 'none';
+          return;
+        }
+        
+        // Erfolgreicher Token - personalisierte Anzeige
         const contentArea = document.querySelector('.content-area');
         const backgroundArea = document.querySelector('.background-area');
         
@@ -315,6 +338,7 @@
             <h1>Hallo ${giver}, ziehe deinen Wichtel</h1>
           </div>
         `;
+
         
         // Background-Area für Losziehen anpassen
         backgroundArea.style.height = 'calc(100vh - 80px)'; // Noch weniger Platz für Header
@@ -331,12 +355,6 @@
             </div>
           </div>
         `;
-        
-        if (!giver || !receiver) {
-          document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
-          document.getElementById("drawBtn").style.display = "none";
-          return;
-        }
 
         const drawArea = document.getElementById("drawArea");
         const drawBtn = document.getElementById("drawBtn");

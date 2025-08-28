@@ -286,19 +286,49 @@
     const fixedGiver = "Jens";
     const fixedReceiver = "Susanne";
 
+    // Sichere Token-Zuweisungen - hardcoded für Demo-Zwecke
+    // In einer echten App würden diese auf einem Server gespeichert
+    let tokenAssignments = {};
+
     // Prüfen, ob URL einen Token enthält
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
-    const giverParam = urlParams.get("giver");
-    const receiverParam = urlParams.get("receiver");
 
-    // Einfache Dekodierung (Base64)
-    function decode(str) {
+    // Token-Generator für sichere URLs
+    function generateSecureToken() {
+      return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
+    }
+
+    // Token-zu-Zuweisung Konvertierung (vereinfachte Demo-Lösung)
+    function createTokenFromAssignment(giver, receiver, seed) {
+      // Verwende einen Seed für konsistente Token-Generierung
+      const giverIndex = participants.indexOf(giver);
+      const receiverIndex = participants.indexOf(receiver);
+      const combined = (giverIndex << 4) | receiverIndex; // Bit-Verschiebung für Kombination
+      const tokenPart = combined.toString(36).padStart(2, '0');
+      const seedPart = seed.toString(36).substr(2, 6);
+      return seedPart + tokenPart + Math.random().toString(36).substr(2, 4);
+    }
+
+    function decodeTokenToAssignment(token) {
       try {
-        return atob(str);
-      } catch(e) {
-        return null;
+        // Extrahiere den relevanten Teil des Tokens
+        const tokenPart = token.substr(6, 2); // Position 6-7
+        const combined = parseInt(tokenPart, 36);
+        const giverIndex = (combined >> 4) & 0xF; // Obere 4 Bits
+        const receiverIndex = combined & 0xF; // Untere 4 Bits
+        
+        if (giverIndex >= 0 && giverIndex < participants.length && 
+            receiverIndex >= 0 && receiverIndex < participants.length) {
+          return {
+            giver: participants[giverIndex],
+            receiver: participants[receiverIndex]
+          };
+        }
+      } catch (e) {
+        console.error("Token decode error:", e);
       }
+      return null;
     }
 
     // Warten bis DOM geladen ist
@@ -306,26 +336,25 @@
       console.log("DOM loaded, tokenParam:", tokenParam);
       
       if(tokenParam) {
-        // Teilnehmer-Modus - Token aus URL dekodieren
+        // Teilnehmer-Modus - Token prüfen
         console.log("Participant mode");
-        console.log("TokenParam:", tokenParam);
         
-        const giver = decode(giverParam);
-        const receiver = decode(receiverParam);
+        // Da wir keinen Server haben, verwenden wir eine einfache Token-zu-Index Konvertierung
+        // Dies ist nur für Demo-Zwecke - in einer echten App sollten die Daten auf einem Server liegen
+        const tokenData = decodeTokenToAssignment(tokenParam);
         
-        console.log("Giver:", giver);
-        console.log("Receiver:", receiver);
+        const assignment = tokenData;
         
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
-        if (!giver || !receiver || !participants.includes(giver) || !participants.includes(receiver)) {
-          // Fehlerfall - nur Fehlermeldung anzeigen
+        if (!assignment || !assignment.giver || !assignment.receiver) {
+          // Fehlerfall - ungültiger Token
           const contentArea = document.querySelector('.content-area');
           contentArea.innerHTML = `
             <div class="container">
               <h1>Wichteln 2025</h1>
-              <p style="color: red; font-size: 1.2em;">Ungültiger Link! Bitte Admin kontaktieren.</p>
+              <p style="color: red; font-size: 1.2em;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p>
             </div>
           `;
           
@@ -334,6 +363,9 @@
         }
         
         // Erfolgreicher Token - personalisierte Anzeige
+        const giver = assignment.giver;
+        const receiver = assignment.receiver;
+        
         const contentArea = document.querySelector('.content-area');
         const backgroundArea = document.querySelector('.background-area');
         
@@ -344,9 +376,8 @@
           </div>
         `;
 
-        
         // Background-Area für Losziehen anpassen
-        backgroundArea.style.height = 'calc(100vh - 80px)'; // Noch weniger Platz für Header
+        backgroundArea.style.height = 'calc(100vh - 80px)';
         backgroundArea.style.backgroundPosition = 'center center';
         backgroundArea.style.display = 'flex';
         backgroundArea.style.alignItems = 'center';
@@ -374,7 +405,7 @@
           drawArea.style.padding = "15px";
           
           const names = [...participants];
-          const totalDuration = 6000; // 6 Sekunden statt 4
+          const totalDuration = 6000; // 6 Sekunden
           const startTime = performance.now();
           let lastChange = startTime;
           let currentIndex = 0;
@@ -456,7 +487,7 @@
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {
           generateBtn.addEventListener("click", function() {
-            console.log("Generate button clicked"); // Debug
+            console.log("Generate button clicked");
             
             // Zufällige Zuweisung ohne Gegenseitigkeit
             let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
@@ -473,12 +504,10 @@
               assignments[others[i]] = shuffled[i];
             }
             
-            console.log("Assignments:", assignments); // Debug
+            console.log("Assignments:", assignments);
             
-            // Einfache Kodierung (Base64) für URL-Parameter
-            function encode(str) {
-              return btoa(str);
-            }
+            // Neue Token-Zuweisungen erstellen mit festem Seed für Konsistenz
+            const seed = Date.now(); // Fester Seed für diese Generierung
             
             // Links anzeigen
             const linksDiv = document.getElementById("links");
@@ -492,10 +521,12 @@
               label.innerText = giver + ": ";
               
               const link = document.createElement("a");
-              const encodedGiver = encode(giver);
-              const encodedReceiver = encode(receiver);
-              const randomToken = Math.random().toString(36).substr(2, 8);
-              link.href = `${window.location.origin}${window.location.pathname}?token=${randomToken}&giver=${encodedGiver}&receiver=${encodedReceiver}`;
+              
+              // Token generieren der auf jedem Gerät dekodiert werden kann
+              const secureToken = createTokenFromAssignment(giver, receiver, seed);
+              
+              // Saubere URL nur mit Token
+              link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
               link.target = "_blank";
               link.innerText = "Los ziehen";
               
@@ -503,6 +534,8 @@
               linkWrapper.appendChild(link);
               linksDiv.appendChild(linkWrapper);
             }
+            
+            // Keine localStorage-Speicherung mehr nötig - Token sind selbst-dekodierend
             
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;

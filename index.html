@@ -321,7 +321,7 @@
           drawArea.style.padding = "15px";
           
           const names = [...participants];
-          const totalDuration = 4000; // 4 Sekunden
+          const totalDuration = 6000; // 6 Sekunden statt 4
           const startTime = performance.now();
           let lastChange = startTime;
           let currentIndex = 0;
@@ -330,8 +330,8 @@
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / totalDuration, 1);
             
-            // Ease-Out: schnell am Anfang, langsam am Ende
-            const eased = 1 - Math.pow(1 - progress, 3);
+            // Ease-Out angepasst: längere schnelle Phase
+            const eased = progress < 0.6 ? progress * 1.2 : 0.72 + (1 - Math.pow(1 - ((progress - 0.6) / 0.4), 4)) * 0.28;
             const interval = 50 + eased * 400; // Zeit zwischen Namen
             
             if(now - lastChange >= interval) {

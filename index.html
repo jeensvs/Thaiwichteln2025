@@ -14,16 +14,9 @@
       font-family: Arial, sans-serif;
       color: #333;
     }
-    body {
-      overflow-y: auto; /* scrollen auf mobile erlaubt */
-    }
+    body { overflow-y: auto; }
 
-    .content-area {
-      background: white;
-      padding: 8px 20px;
-      position: relative;
-      z-index: 2;
-    }
+    .content-area { background: white; padding: 8px 20px; position: relative; z-index: 2; }
 
     .background-area {
       background: url('images/background.jpg') no-repeat center top;
@@ -146,74 +139,115 @@ const forbiddenPairs = [
   ["Caroline","Jens"], ["Jens","Caroline"]
 ];
 
-let tokenAssignments = {};
-
 document.addEventListener('DOMContentLoaded', function() {
   const urlParams = new URLSearchParams(window.location.search);
   const tokenParam = urlParams.get("token");
 
-  const adminPassword = document.getElementById('admin-password');
-  const adminLoginBtn = document.getElementById('admin-login-btn');
-  const loginError = document.getElementById('login-error');
-  const adminSection = document.getElementById('admin');
-  const adminLoginSection = document.getElementById('admin-login');
+  if(tokenParam){
+    initParticipantMode(tokenParam);
+  } else {
+    initAdminMode();
+  }
 
-  // Admin Login
-  adminLoginBtn.addEventListener('click', checkPassword);
-  adminPassword.addEventListener('keypress', function(e){
-    if(e.key === 'Enter') checkPassword();
-  });
+  function initParticipantMode(token){
+    const drawArea = document.getElementById("drawArea");
+    const drawBtn = document.getElementById("drawBtn");
 
-  function checkPassword() {
-    if(adminPassword.value==='Jens'){
-      adminLoginSection.style.display='none';
-      adminSection.style.display='block';
-      loginError.style.display='none';
-      sessionStorage.setItem('admin-logged-in','true');
+    const tokenData = decodeTokenToAssignment(token);
+    const giver = tokenData?.giver;
+    const receiver = tokenData?.receiver;
 
-      updatePulledStatus(); // Statusliste anzeigen
-      setInterval(updatePulledStatus, 15000); // alle 15s aktualisieren
-    } else {
-      loginError.style.display='block';
-      adminPassword.value='';
-      adminPassword.focus();
+    if(!giver || !receiver){
+        drawArea.innerText="Ungültiger Link!";
+        drawBtn.style.display='none';
+        return;
     }
-  }
 
-  if(sessionStorage.getItem('admin-logged-in')==='true'){
-    adminLoginSection.style.display='none';
-    adminSection.style.display='block';
-    updatePulledStatus();
-    setInterval(updatePulledStatus,15000);
-  }
+    document.getElementById('admin').style.display='none';
+    document.getElementById('admin-login').style.display='none';
 
-  // Admin: Zuweisungen erstellen
-  const generateBtn = document.getElementById("generateBtn");
-  if(generateBtn){
-    generateBtn.addEventListener("click", function(){
-      const assignments = generateAssignments();
-      const seed = Date.now();
-      const linksDiv = document.getElementById("links");
-      linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
+    drawBtn.addEventListener("click", ()=>{
+        drawBtn.disabled=true;
 
-      for(const [giver, receiver] of Object.entries(assignments)){
-        const linkWrapper = document.createElement("div");
-        linkWrapper.style.marginBottom="10px";
-        const label = document.createElement("strong");
-        label.innerText = giver+": ";
-        const link = document.createElement("a");
-        const secureToken = createTokenFromAssignment(giver, receiver, seed);
-        link.href=`${window.location.origin}${window.location.pathname}?token=${secureToken}`;
-        link.target="_blank";
-        link.innerText="Los ziehen";
-        linkWrapper.appendChild(label);
-        linkWrapper.appendChild(link);
-        linksDiv.appendChild(linkWrapper);
-      }
-      generateBtn.innerText="Zuweisungen erstellt!";
-      generateBtn.disabled=true;
-      setTimeout(()=>{generateBtn.innerText="Neue Zuweisungen erstellen"; generateBtn.disabled=false;},5000);
+        const pulledTokens = JSON.parse(localStorage.getItem("pulledTokens")||"{}");
+        pulledTokens[giver]={pulled:true,timestamp:new Date().toISOString()};
+        localStorage.setItem("pulledTokens", JSON.stringify(pulledTokens));
+
+        drawArea.style.background="rgba(255,255,255,0.8)";
+        drawArea.style.borderRadius="10px";
+        drawArea.style.padding="15px";
+
+        setTimeout(()=>{
+            drawArea.innerText = receiver;
+            drawArea.style.color="#ff0000";
+            drawArea.style.fontSize="2.5em";
+        },200);
     });
+  }
+
+  function initAdminMode(){
+    const adminPassword = document.getElementById('admin-password');
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const loginError = document.getElementById('login-error');
+    const adminSection = document.getElementById('admin');
+    const adminLoginSection = document.getElementById('admin-login');
+
+    document.getElementById('participant').style.display='none';
+
+    adminLoginBtn.addEventListener('click', checkPassword);
+    adminPassword.addEventListener('keypress', function(e){
+        if(e.key==='Enter') checkPassword();
+    });
+
+    function checkPassword() {
+        if(adminPassword.value==='Jens'){
+            adminLoginSection.style.display='none';
+            adminSection.style.display='block';
+            loginError.style.display='none';
+            sessionStorage.setItem('admin-logged-in','true');
+            updatePulledStatus();
+            setInterval(updatePulledStatus,15000);
+        } else {
+            loginError.style.display='block';
+            adminPassword.value='';
+            adminPassword.focus();
+        }
+    }
+
+    if(sessionStorage.getItem('admin-logged-in')==='true'){
+        adminLoginSection.style.display='none';
+        adminSection.style.display='block';
+        updatePulledStatus();
+        setInterval(updatePulledStatus,15000);
+    }
+
+    const generateBtn = document.getElementById("generateBtn");
+    if(generateBtn){
+      generateBtn.addEventListener("click", function(){
+        const assignments = generateAssignments();
+        const seed = Date.now();
+        const linksDiv = document.getElementById("links");
+        linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
+
+        for(const [giver, receiver] of Object.entries(assignments)){
+          const linkWrapper = document.createElement("div");
+          linkWrapper.style.marginBottom="10px";
+          const label = document.createElement("strong");
+          label.innerText = giver+": ";
+          const link = document.createElement("a");
+          const secureToken = createTokenFromAssignment(giver, receiver, seed);
+          link.href=`${window.location.origin}${window.location.pathname}?token=${secureToken}`;
+          link.target="_blank";
+          link.innerText="Los ziehen";
+          linkWrapper.appendChild(label);
+          linkWrapper.appendChild(link);
+          linksDiv.appendChild(linkWrapper);
+        }
+        generateBtn.innerText="Zuweisungen erstellt!";
+        generateBtn.disabled=true;
+        setTimeout(()=>{generateBtn.innerText="Neue Zuweisungen erstellen"; generateBtn.disabled=false;},5000);
+      });
+    }
   }
 
   function generateAssignments(){
@@ -240,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return assignments;
   }
 
-  // Token-Generator
   function createTokenFromAssignment(giver, receiver, seed){
     const giverIndex = participants.indexOf(giver);
     const receiverIndex = participants.indexOf(receiver);
@@ -248,35 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const tokenPart = combined.toString(36).padStart(2,'0');
     const seedPart = seed.toString(36).substr(2,6);
     return seedPart+tokenPart+Math.random().toString(36).substr(2,4);
-  }
-
-  // Teilnehmer-Modus
-  if(tokenParam){
-    const drawArea = document.getElementById("drawArea");
-    const drawBtn = document.getElementById("drawBtn");
-    // Prüfen, wer der Giver ist
-    const tokenData = decodeTokenToAssignment(tokenParam);
-    const giver = tokenData?.giver;
-    const receiver = tokenData?.receiver;
-    if(!giver || !receiver){
-      drawArea.innerText="Ungültiger Link!";
-      drawBtn.style.display='none';
-    }
-
-    drawBtn.addEventListener("click", ()=>{
-      drawBtn.disabled=true;
-
-      // Speichern in localStorage mit Timestamp
-      const pulledTokens = JSON.parse(localStorage.getItem("pulledTokens")||"{}");
-      pulledTokens[giver]={pulled:true,timestamp:new Date().toISOString()};
-      localStorage.setItem("pulledTokens", JSON.stringify(pulledTokens));
-
-      drawArea.style.background="rgba(255,255,255,0.8)";
-      drawArea.style.borderRadius="10px";
-      drawArea.style.padding="15px";
-
-      setTimeout(()=>{drawArea.innerText=receiver; drawArea.style.color="#ff0000"; drawArea.style.fontSize="2.5em";}, 200);
-    });
   }
 
   function decodeTokenToAssignment(token){
@@ -292,7 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return null;
   }
 
-  // Admin: Update Statusliste
   function updatePulledStatus(){
     const pulledTokens = JSON.parse(localStorage.getItem("pulledTokens")||"{}");
     let statusDiv = document.getElementById("pulled-status");

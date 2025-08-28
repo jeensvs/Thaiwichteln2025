@@ -126,6 +126,28 @@
       border: 2px solid #e9ecef;
     }
 
+    #admin-login {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+    }
+
+    #admin-login input {
+      padding: 10px 15px;
+      font-size: 1.1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      text-align: center;
+    }
+
+    #admin-login input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
     #participant {
       padding: 0;
       background: transparent;
@@ -233,7 +255,15 @@
     <div class="container">
       <h1>Wichteln 2025</h1>
       
-      <div id="admin">
+      <div id="admin-login">
+        <h2>Admin-Zugang</h2>
+        <input type="password" id="admin-password" placeholder="Passwort eingeben">
+        <br>
+        <button id="admin-login-btn">Einloggen</button>
+        <div id="login-error" style="color: red; margin-top: 10px; display: none;">Falsches Passwort!</div>
+      </div>
+      
+      <div id="admin" style="display: none;">
         <h2>Admin-Bereich</h2>
         <button id="generateBtn">Zuweisungen erstellen</button>
         <div id="links"></div>
@@ -361,6 +391,44 @@
         
         // Participant-Bereich für Admin-Seite ausblenden
         document.querySelector('.background-area').style.display = 'none';
+        
+        // Admin-Login Funktionalität
+        const adminPassword = document.getElementById('admin-password');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const loginError = document.getElementById('login-error');
+        const adminSection = document.getElementById('admin');
+        const adminLoginSection = document.getElementById('admin-login');
+        
+        // Enter-Taste im Passwort-Feld
+        adminPassword.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            checkPassword();
+          }
+        });
+        
+        // Login-Button
+        adminLoginBtn.addEventListener('click', checkPassword);
+        
+        function checkPassword() {
+          if (adminPassword.value === 'Jens') {
+            adminLoginSection.style.display = 'none';
+            adminSection.style.display = 'block';
+            loginError.style.display = 'none';
+            
+            // Admin-Session merken
+            sessionStorage.setItem('admin-logged-in', 'true');
+          } else {
+            loginError.style.display = 'block';
+            adminPassword.value = '';
+            adminPassword.focus();
+          }
+        }
+        
+        // Prüfen ob bereits eingeloggt
+        if (sessionStorage.getItem('admin-logged-in') === 'true') {
+          adminLoginSection.style.display = 'none';
+          adminSection.style.display = 'block';
+        }
         
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {

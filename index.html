@@ -7,9 +7,9 @@
   <style>
     html {
       overflow-x: hidden;
-      overflow-y: auto; /* geändert von hidden → auto für Scroll */
+      overflow-y: auto;
       width: 100%;
-      height: auto; /* vorher 100vh → auto, damit Scrollen möglich */
+      height: auto;
     }
 
     body {
@@ -19,9 +19,9 @@
       text-align: center;
       color: #333;
       overflow-x: hidden;
-      overflow-y: auto; /* geändert */
+      overflow-y: auto;
       width: 100%;
-      height: auto; /* vorher 100vh → auto */
+      height: auto;
       max-width: 100vw;
     }
 
@@ -33,31 +33,44 @@
     }
 
     .background-area {
-      background: url('images/background.jpg') no-repeat center 20%; /* Bild nach oben verschoben */
-      background-size: 90% auto; /* Bild etwas kleiner */
-      min-height: 100vh; 
+      background: url('images/background.jpg') no-repeat center 20%;
+      background-size: 90% auto;
+      min-height: 100vh;
       position: relative;
       display: flex;
-      align-items: flex-end;
-      padding: 20px;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 50px;
       box-sizing: border-box;
       width: 100%;
       max-width: 100vw;
       overflow-x: hidden;
     }
 
-    /* --- Änderung: Button nach oben verschieben --- */
-#participant {
-  position: absolute;
-  top: 150px;   /* Abstand vom oberen Rand */
-  left: 50%;
-  transform: translateX(-50%);
-}
+    #participant {
+      /* Button nach oben verschoben */
+      margin-top: 0px;
+    }
 
-    .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.95);
-                 border-radius: 10px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                 width: 100%; box-sizing: border-box; }
-    .draw-container { width: 100%; max-width: 100%; margin: 0 auto; background: transparent; box-sizing: border-box; }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .draw-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      background: transparent;
+      box-sizing: border-box;
+    }
+
     h1 { margin-bottom: 8px; margin-top: 5px; font-size: 2em; color: #333; }
     h2 { margin-bottom: 15px; font-size: 1.3em; color: #333; }
     button { margin: 15px; padding: 12px 24px; font-size: 1.2em; cursor: pointer; border: none;
@@ -70,7 +83,6 @@
                 margin: 15px 0; min-height: 60px; display: flex; align-items: center;
                 justify-content: center; background: transparent; border: none; padding: 10px; }
 
-    /* Mobile Anpassungen */
     @media (max-width: 600px) {
       .content-area { padding: 5px; }
       .background-area { height: auto; padding: 10px; max-width: 100vw; overflow-x: hidden; }
@@ -81,17 +93,15 @@
       #drawArea { font-size: 1.3em; min-height: 50px; margin: 10px 0; padding: 8px; }
       button { font-size: 1em; padding: 10px 20px; margin: 10px 5px; }
       #admin { padding: 15px; margin-bottom: 20px; }
-      #participant { padding: 15px; margin-top: 30px; } /* auch hier Button auf Mobile verschoben */
+      #participant { padding: 15px; margin-top: 0px; }
     }
   </style>
 </head>
-
-
 <body>
   <div class="content-area">
     <div class="container">
       <h1>Wichteln 2025</h1>
-      
+
       <div id="admin-login">
         <h2>Admin-Zugang</h2>
         <input type="password" id="admin-password" placeholder="Passwort eingeben">
@@ -99,7 +109,7 @@
         <button id="admin-login-btn">Einloggen</button>
         <div id="login-error" style="color: red; margin-top: 10px; display: none;">Falsches Passwort!</div>
       </div>
-      
+
       <div id="admin" style="display: none;">
         <h2>Admin-Bereich</h2>
         <button id="generateBtn">Zuweisungen erstellen</button>
@@ -107,11 +117,10 @@
       </div>
     </div>
   </div>
-  
+
   <div class="background-area">
     <div class="draw-container">
       <div id="participant">
-        <h2>Ziehe dein Los</h2>
         <div id="drawArea"></div>
         <button id="drawBtn">Los ziehen</button>
       </div>
@@ -119,196 +128,205 @@
   </div>
 
   <script>
-   const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
-const fixedGiver = "Jens";
-const fixedReceiver = "Susanne";
+    const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
+    const fixedGiver = "Jens";
+    const fixedReceiver = "Susanne";
 
-// Paare, die sich nicht gegenseitig ziehen dürfen
-const forbiddenPairs = [
-  ["Claus", "Susanne"], ["Susanne", "Claus"],
-  ["Ole", "Inga"], ["Inga", "Ole"],
-  ["Henrik", "Annbritt"], ["Annbritt", "Henrik"],
-  ["Caroline", "Jens"], ["Jens", "Caroline"],
-];
+    const forbiddenPairs = [
+      ["Claus", "Susanne"], ["Susanne", "Claus"],
+      ["Ole", "Inga"], ["Inga", "Ole"],
+      ["Henrik", "Annbritt"], ["Annbritt", "Henrik"],
+      ["Caroline", "Jens"], ["Jens", "Caroline"],
+    ];
 
-function generateAssignments() {
-  const assignments = {};
-  const remaining = participants.filter(p => p !== fixedGiver);
+    let tokenAssignments = {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get("token");
 
-  // Jens zieht immer Susanne
-  assignments[fixedGiver] = fixedReceiver;
-
-  // Liste der Personen, die noch gezogen werden müssen
-  let availableReceivers = participants.filter(p => p !== fixedGiver);
-
-  for (let giver of remaining) {
-    let possibleReceivers = availableReceivers.filter(r => {
-      // Keine Selbstziehung
-      if (r === giver) return false;
-      // Kein Paar aus forbiddenPairs
-      if (forbiddenPairs.some(pair => pair[0] === giver && pair[1] === r)) return false;
-      // Keine gegenseitige Ziehung
-      if (assignments[r] === giver) return false;
-      return true;
-    });
-
-    if (possibleReceivers.length === 0) {
-      // Falls keine gültigen Receiver mehr, kompletten Versuch neu starten
-      return generateAssignments();
+    function generateSecureToken() {
+      return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
     }
 
-    // Zufällig einen gültigen Receiver auswählen
-    const receiver = possibleReceivers[Math.floor(Math.random() * possibleReceivers.length)];
-    assignments[giver] = receiver;
-    availableReceivers = availableReceivers.filter(r => r !== receiver);
-  }
+    function createTokenFromAssignment(giver, receiver, seed) {
+      const giverIndex = participants.indexOf(giver);
+      const receiverIndex = participants.indexOf(receiver);
+      const combined = (giverIndex << 4) | receiverIndex;
+      const tokenPart = combined.toString(36).padStart(2, '0');
+      const seedPart = seed.toString(36).substr(2, 6);
+      return seedPart + tokenPart + Math.random().toString(36).substr(2, 4);
+    }
 
-  return assignments;
-}
+    function decodeTokenToAssignment(token) {
+      try {
+        const tokenPart = token.substr(6, 2);
+        const combined = parseInt(tokenPart, 36);
+        const giverIndex = (combined >> 4) & 0xF;
+        const receiverIndex = combined & 0xF;
+        if (giverIndex >= 0 && giverIndex < participants.length &&
+            receiverIndex >= 0 && receiverIndex < participants.length) {
+          return {
+            giver: participants[giverIndex],
+            receiver: participants[receiverIndex]
+          };
+        }
+      } catch (e) { console.error("Token decode error:", e); }
+      return null;
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       if(tokenParam) {
-        // Teilnehmer-Modus
-        const assignment = decodeTokenToAssignment(tokenParam);
+        const tokenData = decodeTokenToAssignment(tokenParam);
+        const assignment = tokenData;
+
         document.getElementById("admin").style.display = "none";
 
-        if (!assignment) {
-          document.querySelector('.content-area').innerHTML =
-            `<div class="container"><h1>Wichteln 2025</h1><p style="color:red;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p></div>`;
+        if (!assignment || !assignment.giver || !assignment.receiver) {
+          const contentArea = document.querySelector('.content-area');
+          contentArea.innerHTML = `
+            <div class="container">
+              <h1>Wichteln 2025</h1>
+              <p style="color: red; font-size: 1.2em;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p>
+            </div>`;
           document.querySelector('.background-area').style.display = 'none';
           return;
         }
 
-        const {giver, receiver} = assignment;
-        document.querySelector('.content-area').innerHTML =
-          `<div class="container"><h1>Hallo ${giver}, bitte ziehe deinen Wichtel</h1></div>`;
-
+        const giver = assignment.giver;
+        const receiver = assignment.receiver;
+        const contentArea = document.querySelector('.content-area');
         const backgroundArea = document.querySelector('.background-area');
-        backgroundArea.style.display = 'flex';
+
+        contentArea.innerHTML = `<div class="container"><h1>Hallo ${giver}, ziehe deinen Wichtel</h1></div>`;
         backgroundArea.style.height = 'calc(100vh - 80px)';
-        backgroundArea.style.alignItems = 'center';
+        backgroundArea.style.display = 'flex';
+        backgroundArea.style.alignItems = 'flex-start';
         backgroundArea.style.justifyContent = 'center';
-       backgroundArea.innerHTML = `
-  <div class="draw-container" style="text-align:center;">
-    <div id="participant">
-      <!-- Überschrift entfernt -->
-      <div id="drawArea"></div>
-      <button id="drawBtn">Los ziehen</button>
-    </div>
-  </div>
-`;
+        backgroundArea.innerHTML = `
+          <div class="draw-container" style="background: transparent;">
+            <div id="participant" style="background: transparent; padding: 0;">
+              <div id="drawArea"></div>
+              <button id="drawBtn">Los ziehen</button>
+            </div>
+          </div>`;
 
         const drawArea = document.getElementById("drawArea");
         const drawBtn = document.getElementById("drawBtn");
 
         drawBtn.addEventListener("click", () => {
           drawBtn.disabled = true;
-          drawArea.style.background = "rgba(255,255,255,0.8)";
+          drawArea.style.background = "rgba(255, 255, 255, 0.8)";
           drawArea.style.borderRadius = "10px";
           drawArea.style.padding = "15px";
+
           const names = [...participants];
           const totalDuration = 6000;
           const startTime = performance.now();
-          let lastChange = startTime, currentIndex = 0;
+          let lastChange = startTime;
+          let currentIndex = 0;
+
           function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / totalDuration, 1);
-            const eased = progress < 0.6 ? progress * 1.2
-                        : 0.72 + (1 - Math.pow(1 - ((progress - 0.6)/0.4),4))*0.28;
+            const eased = progress < 0.6 ? progress * 1.2 : 0.72 + (1 - Math.pow(1 - ((progress - 0.6) / 0.4), 4)) * 0.28;
             const interval = 50 + eased * 400;
+
             if(now - lastChange >= interval) {
               drawArea.innerText = names[currentIndex];
               currentIndex = (currentIndex + 1) % names.length;
               lastChange = now;
             }
-            if(progress < 1) {
-              requestAnimationFrame(animate);
-            } else {
-              setTimeout(() => {
-                drawArea.innerText = receiver;
-                drawArea.style.color = "#ff0000";
-                drawArea.style.fontSize = "2.5em";
-              }, 200);
-            }
+
+            if(progress < 1) requestAnimationFrame(animate);
+            else setTimeout(() => {
+              drawArea.innerText = receiver;
+              drawArea.style.color = "#ff0000";
+              drawArea.style.fontSize = "2.5em";
+            }, 200);
           }
+
           requestAnimationFrame(animate);
         });
 
       } else {
-        // Admin-Modus
-        document.querySelector('.background-area').style.display = 'none';
         const adminPassword = document.getElementById('admin-password');
         const adminLoginBtn = document.getElementById('admin-login-btn');
         const loginError = document.getElementById('login-error');
         const adminSection = document.getElementById('admin');
         const adminLoginSection = document.getElementById('admin-login');
 
+        adminPassword.addEventListener('keypress', function(e) { if(e.key === 'Enter') checkPassword(); });
+        adminLoginBtn.addEventListener('click', checkPassword);
+
         function checkPassword() {
-          if (adminPassword.value === 'Jens') {
+          if(adminPassword.value === 'Jens') {
             adminLoginSection.style.display = 'none';
             adminSection.style.display = 'block';
             loginError.style.display = 'none';
             sessionStorage.setItem('admin-logged-in', 'true');
-          } else {
-            loginError.style.display = 'block';
-            adminPassword.value = '';
-            adminPassword.focus();
-          }
+          } else { loginError.style.display = 'block'; adminPassword.value = ''; adminPassword.focus(); }
         }
-        adminPassword.addEventListener('keypress', e => { if(e.key==='Enter') checkPassword(); });
-        adminLoginBtn.addEventListener('click', checkPassword);
 
-        if (sessionStorage.getItem('admin-logged-in') === 'true') {
+        if(sessionStorage.getItem('admin-logged-in') === 'true') {
           adminLoginSection.style.display = 'none';
           adminSection.style.display = 'block';
         }
 
         const generateBtn = document.getElementById("generateBtn");
-        if (generateBtn) {
+        if(generateBtn) {
           generateBtn.addEventListener("click", function() {
-            const assignments = generateAssignments();
             const seed = Date.now();
+            const assignments = generateAssignments();
+
             const linksDiv = document.getElementById("links");
-linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
-            // alle Teilnehmer durchlaufen, nicht nur die übrigen
-for (const giver of participants) {
-  const receiver = assignments[giver]; // zugewiesener Receiver
-  const linkWrapper = document.createElement("div");
-  linkWrapper.style.marginBottom = "10px";
+            linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
 
-  const label = document.createElement("strong");
-  label.innerText = giver + ": ";
+            for(const giver of participants) {
+              const receiver = assignments[giver];
+              const linkWrapper = document.createElement("div");
+              linkWrapper.style.marginBottom = "10px";
+              const label = document.createElement("strong");
+              label.innerText = giver + ": ";
+              const link = document.createElement("a");
+              const secureToken = createTokenFromAssignment(giver, receiver, seed);
+              link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
+              link.target = "_blank";
+              link.innerText = "Los ziehen";
+              linkWrapper.appendChild(label);
+              linkWrapper.appendChild(link);
+              linksDiv.appendChild(linkWrapper);
+            }
 
-  const link = document.createElement("a");
-  // Token generieren, der auf jedem Gerät dekodiert werden kann
-  const secureToken = createTokenFromAssignment(giver, receiver, seed);
-
-  // Saubere URL nur mit Token
-  link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
-  link.target = "_blank";
-  link.innerText = "Los ziehen";
-
-  linkWrapper.appendChild(label);
-  linkWrapper.appendChild(link);
-  linksDiv.appendChild(linkWrapper);
-}
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;
             setTimeout(() => { generateBtn.innerText = "Neue Zuweisungen erstellen"; generateBtn.disabled = false; }, 5000);
           });
+        }
+
+        function generateAssignments() {
+          const assignments = {};
+          const remaining = participants.filter(p => p !== fixedGiver);
+          assignments[fixedGiver] = fixedReceiver;
+
+          let availableReceivers = participants.filter(p => p !== fixedGiver);
+
+          for(let giver of remaining) {
+            let possibleReceivers = availableReceivers.filter(r => {
+              if(r === giver) return false;
+              if(forbiddenPairs.some(pair => pair[0] === giver && pair[1] === r)) return false;
+              if(assignments[r] === giver) return false;
+              return true;
+            });
+
+            if(possibleReceivers.length === 0) return generateAssignments();
+            const receiver = possibleReceivers[Math.floor(Math.random() * possibleReceivers.length)];
+            assignments[giver] = receiver;
+            availableReceivers = availableReceivers.filter(r => r !== receiver);
+          }
+
+          return assignments;
         }
       }
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

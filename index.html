@@ -214,6 +214,10 @@
 
         drawBtn.addEventListener("click", () => {
           drawBtn.disabled = true;
+            // ❗ NEU: Speichern, dass der Teilnehmer gezogen hat + Timestamp
+  const pulledTokens = JSON.parse(localStorage.getItem("pulledTokens") || "{}");
+  pulledTokens[giver] = { pulled: true, timestamp: new Date().toISOString() };
+  localStorage.setItem("pulledTokens", JSON.stringify(pulledTokens));
           drawArea.style.background = "rgba(255, 255, 255, 0.8)";
           drawArea.style.borderRadius = "10px";
           drawArea.style.padding = "15px";
@@ -265,7 +269,34 @@
             sessionStorage.setItem('admin-logged-in', 'true');
           } else { loginError.style.display = 'block'; adminPassword.value = ''; adminPassword.focus(); }
         }
+function updatePulledStatus() {
+  const pulledTokens = JSON.parse(localStorage.getItem("pulledTokens") || "{}");
+  let statusDiv = document.getElementById("pulled-status");
 
+  if(!statusDiv) {
+    statusDiv = document.createElement("div");
+    statusDiv.id = "pulled-status";
+    statusDiv.style.marginTop = "20px";
+    statusDiv.innerHTML = "<h3>Teilnehmer, die bereits gezogen haben:</h3>";
+    const ul = document.createElement("ul");
+    statusDiv.appendChild(ul);
+    document.getElementById("admin").appendChild(statusDiv);
+  }
+
+  const ul = statusDiv.querySelector("ul");
+  ul.innerHTML = "";
+
+  for(const p of participants) {
+    const li = document.createElement("li");
+    if(pulledTokens[p] && pulledTokens[p].pulled) {
+      const date = new Date(pulledTokens[p].timestamp);
+      li.innerText = `${p} (gezogen am ${date.toLocaleString()})`;
+    } else {
+      li.innerText = "-";
+    }
+    ul.appendChild(li);
+  }
+}
         if(sessionStorage.getItem('admin-logged-in') === 'true') {
           adminLoginSection.style.display = 'none';
           adminSection.style.display = 'block';
@@ -343,5 +374,6 @@
   </script>
 </body>
 </html>
+
 
 

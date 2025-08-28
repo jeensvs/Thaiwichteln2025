@@ -289,24 +289,29 @@
     // Prüfen, ob URL einen Token enthält
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
+    const giverParam = urlParams.get("giver");
+    const receiverParam = urlParams.get("receiver");
+
+    // Einfache Dekodierung (Base64)
+    function decode(str) {
+      try {
+        return atob(str);
+      } catch(e) {
+        return null;
+      }
+    }
 
     // Warten bis DOM geladen ist
     document.addEventListener('DOMContentLoaded', function() {
       console.log("DOM loaded, tokenParam:", tokenParam);
       
       if(tokenParam) {
-        // Teilnehmer-Modus
+        // Teilnehmer-Modus - Token aus URL dekodieren
         console.log("Participant mode");
         console.log("TokenParam:", tokenParam);
         
-        const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
-        const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
-        
-        console.log("TokenMap:", tokenMap);
-        console.log("Assignments:", assignments);
-        
-        const giver = tokenMap[tokenParam];
-        const receiver = assignments[giver];
+        const giver = decode(giverParam);
+        const receiver = decode(receiverParam);
         
         console.log("Giver:", giver);
         console.log("Receiver:", receiver);
@@ -314,7 +319,7 @@
         // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
-        if (!giver || !receiver) {
+        if (!giver || !receiver || !participants.includes(giver) || !participants.includes(receiver)) {
           // Fehlerfall - nur Fehlermeldung anzeigen
           const contentArea = document.querySelector('.content-area');
           contentArea.innerHTML = `
@@ -470,23 +475,16 @@
             
             console.log("Assignments:", assignments); // Debug
             
-            // Tokens erzeugen
-            const tokenMap = {};
-            participants.forEach(p => {
-              const token = Math.random().toString(36).substr(2, 10);
-              tokenMap[token] = p;
-            });
-            
-            console.log("TokenMap:", tokenMap); // Debug
-            
-            localStorage.setItem("assignments", JSON.stringify(assignments));
-            localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
+            // Einfache Kodierung (Base64) für URL-Parameter
+            function encode(str) {
+              return btoa(str);
+            }
             
             // Links anzeigen
             const linksDiv = document.getElementById("links");
             linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
             
-            for(const [token, giver] of Object.entries(tokenMap)) {
+            for(const [giver, receiver] of Object.entries(assignments)) {
               const linkWrapper = document.createElement("div");
               linkWrapper.style.marginBottom = "10px";
               
@@ -494,7 +492,10 @@
               label.innerText = giver + ": ";
               
               const link = document.createElement("a");
-              link.href = `${window.location.origin}${window.location.pathname}?token=${token}`;
+              const encodedGiver = encode(giver);
+              const encodedReceiver = encode(receiver);
+              const randomToken = Math.random().toString(36).substr(2, 8);
+              link.href = `${window.location.origin}${window.location.pathname}?token=${randomToken}&giver=${encodedGiver}&receiver=${encodedReceiver}`;
               link.target = "_blank";
               link.innerText = "Los ziehen";
               

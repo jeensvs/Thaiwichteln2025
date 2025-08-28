@@ -5,13 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wichteln 2025 – Los ziehen</title>
   <style>
-    html {
-      overflow-x: hidden;
-      overflow-y: hidden;
-      width: 100%;
-      height: 100vh;
-    }
-
     body {
       margin: 0;
       padding: 0;
@@ -19,25 +12,21 @@
       text-align: center;
       color: #333;
       overflow-x: hidden;
-      overflow-y: hidden;
       width: 100%;
-      height: 100vh;
       max-width: 100vw;
     }
 
     .content-area {
       background: white;
-      padding: 2px 10px;
+      padding: 20px;
       position: relative;
       z-index: 2;
-      min-height: auto;
     }
 
     .background-area {
       background: url('images/background.jpg') no-repeat center center;
       background-size: cover;
-      background-position: center center;
-      height: calc(100vh - 35px);
+      height: 100vh;
       position: relative;
       display: flex;
       align-items: flex-end;
@@ -52,11 +41,10 @@
       max-width: 600px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
-      border-radius: 8px;
-      padding: 6px 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       width: 100%;
-      box-sizing: border-box;
     }
 
     .draw-container {
@@ -68,13 +56,9 @@
     }
 
     h1 {
-      margin: 5px 0;
-      font-size: 1.2em;   /* etwas kleiner */
+      margin-bottom: 20px;
+      font-size: 2em;
       color: #333;
-      line-height: 1.3;
-      white-space: normal;   /* mehrere Zeilen erlaubt */
-      overflow: visible;     /* kein Abschneiden */
-      text-overflow: unset;  /* kein "..." */
     }
 
     h2 {
@@ -131,28 +115,6 @@
       border: 2px solid #e9ecef;
     }
 
-    #admin-login {
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border: 2px solid #e9ecef;
-    }
-
-    #admin-login input {
-      padding: 10px 15px;
-      font-size: 1.1em;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      margin: 10px;
-      text-align: center;
-    }
-
-    #admin-login input:focus {
-      outline: none;
-      border-color: #3498db;
-    }
-
     #participant {
       padding: 0;
       background: transparent;
@@ -197,18 +159,18 @@
 
     @media (max-width: 600px) {
       .content-area {
-        padding: 5px;
+        padding: 15px;
       }
       
       .background-area {
-        height: calc(100vh - 60px);
+        height: 100vh;
         padding: 10px;
         max-width: 100vw;
         overflow-x: hidden;
       }
       
       .container {
-        padding: 10px;
+        padding: 15px;
         margin: 0;
         max-width: 100%;
         width: 100%;
@@ -222,8 +184,8 @@
       }
       
       h1 {
-        font-size: 1.2em;
-        margin: 5px 0;
+        font-size: 1.8em;
+        margin-bottom: 15px;
       }
       
       h2 {
@@ -256,19 +218,11 @@
   </style>
 </head>
 <body>
-  <div class="content-area">
+      <div class="content-area">
     <div class="container">
       <h1>Wichteln 2025</h1>
       
-      <div id="admin-login">
-        <h2>Admin-Zugang</h2>
-        <input type="password" id="admin-password" placeholder="Passwort eingeben">
-        <br>
-        <button id="admin-login-btn">Einloggen</button>
-        <div id="login-error" style="color: red; margin-top: 10px; display: none;">Falsches Passwort!</div>
-      </div>
-      
-      <div id="admin" style="display: none;">
+      <div id="admin">
         <h2>Admin-Bereich</h2>
         <button id="generateBtn">Zuweisungen erstellen</button>
         <div id="links"></div>
@@ -291,81 +245,43 @@
     const fixedGiver = "Jens";
     const fixedReceiver = "Susanne";
 
+    // Prüfen, ob URL einen Token enthält
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get("token");
 
-    function generateSecureToken() {
-      return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
-    }
-
-    function createTokenFromAssignment(giver, receiver, seed) {
-      const giverIndex = participants.indexOf(giver);
-      const receiverIndex = participants.indexOf(receiver);
-      const combined = (giverIndex << 4) | receiverIndex;
-      const tokenPart = combined.toString(36).padStart(2, '0');
-      const seedPart = seed.toString(36).substr(2, 6);
-      return seedPart + tokenPart + Math.random().toString(36).substr(2, 4);
-    }
-
-    function decodeTokenToAssignment(token) {
-      try {
-        const tokenPart = token.substr(6, 2);
-        const combined = parseInt(tokenPart, 36);
-        const giverIndex = (combined >> 4) & 0xF;
-        const receiverIndex = combined & 0xF;
-        
-        if (giverIndex >= 0 && giverIndex < participants.length && 
-            receiverIndex >= 0 && receiverIndex < participants.length) {
-          return {
-            giver: participants[giverIndex],
-            receiver: participants[receiverIndex]
-          };
-        }
-      } catch (e) {
-        console.error("Token decode error:", e);
-      }
-      return null;
-    }
-
+    // Warten bis DOM geladen ist
     document.addEventListener('DOMContentLoaded', function() {
+      console.log("DOM loaded, tokenParam:", tokenParam);
+      
       if(tokenParam) {
-        const tokenData = decodeTokenToAssignment(tokenParam);
-        const assignment = tokenData;
+        // Teilnehmer-Modus
+        console.log("Participant mode");
+        const tokenMap = JSON.parse(localStorage.getItem("tokenMap") || "{}");
+        const assignments = JSON.parse(localStorage.getItem("assignments") || "{}");
+        const giver = tokenMap[tokenParam];
+        const receiver = assignments[giver];
         
+        // Admin-Bereich ausblenden
         document.getElementById("admin").style.display = "none";
         
-        if (!assignment || !assignment.giver || !assignment.receiver) {
-          const contentArea = document.querySelector('.content-area');
-          contentArea.innerHTML = `
-            <div class="container">
-              <h1>Wichteln 2025</h1>
-              <p style="color: red; font-size: 1.2em;">Ungültiger oder abgelaufener Link! Bitte Admin kontaktieren.</p>
-            </div>
-          `;
-          
-          document.querySelector('.background-area').style.display = 'none';
-          return;
-        }
-        
-        const giver = assignment.giver;
-        const receiver = assignment.receiver;
-        
+        // Layout für Token-Seite anpassen
         const contentArea = document.querySelector('.content-area');
         const backgroundArea = document.querySelector('.background-area');
         
+        // Content-Area für Header anpassen
         contentArea.innerHTML = `
           <div class="container">
-            <h1>Hallo ${giver}, ziehe deinen Wichtel</h1>
+            <h1>Wichteln 2025</h1>
           </div>
         `;
-
-        /* HIER: Hintergrundbild komplett sichtbar */
-        backgroundArea.style.height = '100vh';
-        backgroundArea.style.backgroundSize = 'contain';
+        
+        // Background-Area für Losziehen anpassen
+        backgroundArea.style.height = 'calc(100vh - 120px)'; // Platz für Header
         backgroundArea.style.backgroundPosition = 'center center';
-        backgroundArea.style.backgroundRepeat = 'no-repeat';
-        backgroundArea.style.backgroundColor = '#000'; // optional, damit schwarze Balken
-
+        backgroundArea.style.display = 'flex';
+        backgroundArea.style.alignItems = 'center';
+        backgroundArea.style.justifyContent = 'center';
+        
         backgroundArea.innerHTML = `
           <div class="draw-container" style="background: transparent;">
             <div id="participant" style="background: transparent; padding: 0;">
@@ -374,18 +290,27 @@
             </div>
           </div>
         `;
+        
+        if (!giver || !receiver) {
+          document.getElementById("drawArea").innerText = "Ungültiger Link! Bitte Admin kontaktieren.";
+          document.getElementById("drawBtn").style.display = "none";
+          return;
+        }
 
         const drawArea = document.getElementById("drawArea");
         const drawBtn = document.getElementById("drawBtn");
 
         drawBtn.addEventListener("click", () => {
           drawBtn.disabled = true;
+          
+          // Container für bessere Lesbarkeit hinzufügen
+          const drawArea = document.getElementById("drawArea");
           drawArea.style.background = "rgba(255, 255, 255, 0.8)";
           drawArea.style.borderRadius = "10px";
           drawArea.style.padding = "15px";
           
           const names = [...participants];
-          const totalDuration = 6000;
+          const totalDuration = 4000; // 4 Sekunden
           const startTime = performance.now();
           let lastChange = startTime;
           let currentIndex = 0;
@@ -393,8 +318,10 @@
           function animate(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / totalDuration, 1);
-            const eased = progress < 0.6 ? progress * 1.2 : 0.72 + (1 - Math.pow(1 - ((progress - 0.6) / 0.4), 4)) * 0.28;
-            const interval = 50 + eased * 400;
+            
+            // Ease-Out: schnell am Anfang, langsam am Ende
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const interval = 50 + eased * 400; // Zeit zwischen Namen
             
             if(now - lastChange >= interval) {
               drawArea.innerText = names[currentIndex];
@@ -405,6 +332,7 @@
             if(progress < 1) {
               requestAnimationFrame(animate);
             } else {
+              // Finale Anzeige
               setTimeout(() => {
                 drawArea.innerText = receiver;
                 drawArea.style.color = "#ff0000";
@@ -417,43 +345,18 @@
         });
         
       } else {
+        // Admin-Modus
+        console.log("Admin mode");
+        
+        // Participant-Bereich für Admin-Seite ausblenden
         document.querySelector('.background-area').style.display = 'none';
-        
-        const adminPassword = document.getElementById('admin-password');
-        const adminLoginBtn = document.getElementById('admin-login-btn');
-        const loginError = document.getElementById('login-error');
-        const adminSection = document.getElementById('admin');
-        const adminLoginSection = document.getElementById('admin-login');
-        
-        adminPassword.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            checkPassword();
-          }
-        });
-        
-        adminLoginBtn.addEventListener('click', checkPassword);
-        
-        function checkPassword() {
-          if (adminPassword.value === 'Jens') {
-            adminLoginSection.style.display = 'none';
-            adminSection.style.display = 'block';
-            loginError.style.display = 'none';
-            sessionStorage.setItem('admin-logged-in', 'true');
-          } else {
-            loginError.style.display = 'block';
-            adminPassword.value = '';
-            adminPassword.focus();
-          }
-        }
-        
-        if (sessionStorage.getItem('admin-logged-in') === 'true') {
-          adminLoginSection.style.display = 'none';
-          adminSection.style.display = 'block';
-        }
         
         const generateBtn = document.getElementById("generateBtn");
         if (generateBtn) {
           generateBtn.addEventListener("click", function() {
+            console.log("Generate button clicked"); // Debug
+            
+            // Zufällige Zuweisung ohne Gegenseitigkeit
             let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
             let shuffled;
             
@@ -468,12 +371,25 @@
               assignments[others[i]] = shuffled[i];
             }
             
-            const seed = Date.now();
+            console.log("Assignments:", assignments); // Debug
             
+            // Tokens erzeugen
+            const tokenMap = {};
+            participants.forEach(p => {
+              const token = Math.random().toString(36).substr(2, 10);
+              tokenMap[token] = p;
+            });
+            
+            console.log("TokenMap:", tokenMap); // Debug
+            
+            localStorage.setItem("assignments", JSON.stringify(assignments));
+            localStorage.setItem("tokenMap", JSON.stringify(tokenMap));
+            
+            // Links anzeigen
             const linksDiv = document.getElementById("links");
             linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
             
-            for(const [giver, receiver] of Object.entries(assignments)) {
+            for(const [token, giver] of Object.entries(tokenMap)) {
               const linkWrapper = document.createElement("div");
               linkWrapper.style.marginBottom = "10px";
               
@@ -481,8 +397,7 @@
               label.innerText = giver + ": ";
               
               const link = document.createElement("a");
-              const secureToken = createTokenFromAssignment(giver, receiver, seed);
-              link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
+              link.href = `${window.location.origin}${window.location.pathname}?token=${token}`;
               link.target = "_blank";
               link.innerText = "Los ziehen";
               
@@ -494,11 +409,14 @@
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;
             
+            // Button nach 5 Sekunden wieder aktivieren
             setTimeout(() => {
               generateBtn.innerText = "Neue Zuweisungen erstellen";
               generateBtn.disabled = false;
             }, 5000);
           });
+        } else {
+          console.error("Generate button not found!");
         }
       }
     });

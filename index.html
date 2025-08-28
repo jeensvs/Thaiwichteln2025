@@ -119,70 +119,52 @@
   </div>
 
   <script>
-    const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
-    const fixedGiver = "Jens";
-    const fixedReceiver = "Susanne";
+   const participants = ["Jens","Susanne","Claus","Inga","Ole","Caroline","Henrik","Annbritt"];
+const fixedGiver = "Jens";
+const fixedReceiver = "Susanne";
 
-    const forbiddenPairs = [
-      ["Claus", "Susanne"], ["Susanne", "Claus"],
-      ["Ole", "Inga"], ["Inga", "Ole"],
-      ["Henrik", "Annbritt"], ["Annbritt", "Henrik"],
-      ["Caroline", "Jens"], ["Jens", "Caroline"],
-    ];
+// Paare, die sich nicht gegenseitig ziehen dürfen
+const forbiddenPairs = [
+  ["Claus", "Susanne"], ["Susanne", "Claus"],
+  ["Ole", "Inga"], ["Inga", "Ole"],
+  ["Henrik", "Annbritt"], ["Annbritt", "Henrik"],
+  ["Caroline", "Jens"], ["Jens", "Caroline"],
+];
 
-    let tokenAssignments = {};
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get("token");
+function generateAssignments() {
+  const assignments = {};
+  const remaining = participants.filter(p => p !== fixedGiver);
 
-    function createTokenFromAssignment(giver, receiver, seed) {
-      const giverIndex = participants.indexOf(giver);
-      const receiverIndex = participants.indexOf(receiver);
-      const combined = (giverIndex << 4) | receiverIndex;
-      const tokenPart = combined.toString(36).padStart(2, '0');
-      const seedPart = seed.toString(36).substr(2, 6);
-      return seedPart + tokenPart + Math.random().toString(36).substr(2, 4);
+  // Jens zieht immer Susanne
+  assignments[fixedGiver] = fixedReceiver;
+
+  // Liste der Personen, die noch gezogen werden müssen
+  let availableReceivers = participants.filter(p => p !== fixedGiver);
+
+  for (let giver of remaining) {
+    let possibleReceivers = availableReceivers.filter(r => {
+      // Keine Selbstziehung
+      if (r === giver) return false;
+      // Kein Paar aus forbiddenPairs
+      if (forbiddenPairs.some(pair => pair[0] === giver && pair[1] === r)) return false;
+      // Keine gegenseitige Ziehung
+      if (assignments[r] === giver) return false;
+      return true;
+    });
+
+    if (possibleReceivers.length === 0) {
+      // Falls keine gültigen Receiver mehr, kompletten Versuch neu starten
+      return generateAssignments();
     }
 
-    function decodeTokenToAssignment(token) {
-      try {
-        const tokenPart = token.substr(6, 2);
-        const combined = parseInt(tokenPart, 36);
-        const giverIndex = (combined >> 4) & 0xF;
-        const receiverIndex = combined & 0xF;
-        if (giverIndex >= 0 && giverIndex < participants.length && receiverIndex >= 0 && receiverIndex < participants.length) {
-          return { giver: participants[giverIndex], receiver: participants[receiverIndex] };
-        }
-      } catch (e) { console.error("Token decode error:", e); }
-      return null;
-    }
+    // Zufällig einen gültigen Receiver auswählen
+    const receiver = possibleReceivers[Math.floor(Math.random() * possibleReceivers.length)];
+    assignments[giver] = receiver;
+    availableReceivers = availableReceivers.filter(r => r !== receiver);
+  }
 
-    function isForbiddenPair(giver, receiver) {
-      return forbiddenPairs.some(pair => pair[0] === giver && pair[1] === receiver);
-    }
-
-    function generateAssignments() {
-      let others = participants.filter(p => p !== fixedGiver && p !== fixedReceiver);
-      let assignments = {};
-      let valid = false;
-
-      while (!valid) {
-        let shuffled = others.slice().sort(() => Math.random() - 0.5);
-        valid = true;
-        assignments = {};
-        assignments[fixedGiver] = fixedReceiver;
-
-        for (let i = 0; i < others.length; i++) {
-          const giver = others[i];
-          const receiver = shuffled[i];
-          if (giver === receiver || isForbiddenPair(giver, receiver)) {
-            valid = false;
-            break;
-          }
-          assignments[giver] = receiver;
-        }
-      }
-      return assignments;
-    }
+  return assignments;
+}
 
     document.addEventListener('DOMContentLoaded', function() {
       if(tokenParam) {
@@ -287,21 +269,29 @@
             const assignments = generateAssignments();
             const seed = Date.now();
             const linksDiv = document.getElementById("links");
-            linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
-            for(const [giver, receiver] of Object.entries(assignments)) {
-              const linkWrapper = document.createElement("div");
-              linkWrapper.style.marginBottom = "10px";
-              const label = document.createElement("strong");
-              label.innerText = giver + ": ";
-              const link = document.createElement("a");
-              const secureToken = createTokenFromAssignment(giver, receiver, seed);
-              link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
-              link.target = "_blank";
-              link.innerText = "Los ziehen";
-              linkWrapper.appendChild(label);
-              linkWrapper.appendChild(link);
-              linksDiv.appendChild(linkWrapper);
-            }
+linksDiv.innerHTML = "<h3>Teilnehmer-Links:</h3><p>Teile diese Links mit den jeweiligen Personen:</p>";
+            // alle Teilnehmer durchlaufen, nicht nur die übrigen
+for (const giver of participants) {
+  const receiver = assignments[giver]; // zugewiesener Receiver
+  const linkWrapper = document.createElement("div");
+  linkWrapper.style.marginBottom = "10px";
+
+  const label = document.createElement("strong");
+  label.innerText = giver + ": ";
+
+  const link = document.createElement("a");
+  // Token generieren, der auf jedem Gerät dekodiert werden kann
+  const secureToken = createTokenFromAssignment(giver, receiver, seed);
+
+  // Saubere URL nur mit Token
+  link.href = `${window.location.origin}${window.location.pathname}?token=${secureToken}`;
+  link.target = "_blank";
+  link.innerText = "Los ziehen";
+
+  linkWrapper.appendChild(label);
+  linkWrapper.appendChild(link);
+  linksDiv.appendChild(linkWrapper);
+}
             generateBtn.innerText = "Zuweisungen erstellt!";
             generateBtn.disabled = true;
             setTimeout(() => { generateBtn.innerText = "Neue Zuweisungen erstellen"; generateBtn.disabled = false; }, 5000);
@@ -312,6 +302,7 @@
   </script>
 </body>
 </html>
+
 
 
 

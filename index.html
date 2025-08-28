@@ -3,60 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wichtel-Ziehung</title>
+  <title>Wichteln 2025 – Los ziehen</title>
   <style>
-    html { 
-      overflow-x: hidden; 
-      overflow-y: auto;   /* Scrollen auf Mobile erlauben */
-      width: 100%; 
-      height: 100%; 
+    html {
+      overflow-x: hidden;
+      overflow-y: auto; /* geändert von hidden → auto für Scroll */
+      width: 100%;
+      height: auto; /* vorher 100vh → auto, damit Scrollen möglich */
     }
-    body { 
-      margin: 0; 
-      padding: 0; 
-      font-family: Arial, sans-serif; 
-      text-align: center; 
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
       color: #333;
-      overflow-x: hidden; 
-      overflow-y: auto;   /* Scrollen auf Mobile erlauben */
-      width: 100%; 
-      height: auto;       /* vorher 100vh → jetzt auto */
-      max-width: 100vw; 
+      overflow-x: hidden;
+      overflow-y: auto; /* geändert */
+      width: 100%;
+      height: auto; /* vorher 100vh → auto */
+      max-width: 100vw;
     }
 
     .content-area {
+      background: white;
+      padding: 8px 20px;
       position: relative;
       z-index: 2;
     }
 
     .background-area {
+      background: url('images/background.jpg') no-repeat center center;
+      background-size: cover;
+      min-height: 100vh; /* geändert von height:100vh, damit Scroll möglich */
       position: relative;
-      width: 100%;
-      min-height: 100vh; /* wichtig: damit immer genug Platz für Scroll */
       display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .draw-container {
-      background: rgba(255, 255, 255, 0.8);
+      align-items: flex-end;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-    }
+    /* --- Rest deines originalen CSS bleibt unverändert --- */
+    .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.95);
+                 border-radius: 10px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                 width: 100%; box-sizing: border-box; }
+    .draw-container { width: 100%; max-width: 100%; margin: 0 auto; background: transparent; box-sizing: border-box; }
+    h1 { margin-bottom: 8px; margin-top: 5px; font-size: 2em; color: #333; }
+    h2 { margin-bottom: 15px; font-size: 1.3em; color: #333; }
+    button { margin: 15px; padding: 12px 24px; font-size: 1.2em; cursor: pointer; border: none;
+             border-radius: 8px; background-color: rgba(255, 0, 0, 0.85); color: white;
+             transition: background-color 0.3s ease; }
+    button:hover { background-color: rgba(200, 0, 0, 0.95); }
+    button:active { transform: translateY(0); }
+    button:disabled { background: #bdc3c7; cursor: not-allowed; }
+    #drawArea { font-size: 1.5em; font-weight: bold; color: #333; text-shadow: 2px 2px 4px rgba(255,255,255,0.9);
+                margin: 15px 0; min-height: 60px; display: flex; align-items: center;
+                justify-content: center; background: transparent; border: none; padding: 10px; }
 
-    button:hover {
-      background-color: #45a049;
+    /* Mobile Anpassungen */
+    @media (max-width: 600px) {
+      .content-area { padding: 5px; }
+      .background-area { height: auto; padding: 10px; max-width: 100vw; overflow-x: hidden; }
+      .container { padding: 10px; margin: 0; max-width: 100%; width: 100%; box-sizing: border-box; }
+      .draw-container { max-width: 100%; padding: 0 10px; box-sizing: border-box; }
+      h1 { font-size: 1.4em; margin: 5px 0; }
+      h2 { font-size: 1.2em; margin-bottom: 10px; }
+      #drawArea { font-size: 1.3em; min-height: 50px; margin: 10px 0; padding: 8px; }
+      button { font-size: 1em; padding: 10px 20px; margin: 10px 5px; }
+      #admin { padding: 15px; margin-bottom: 20px; }
+      #participant { padding: 15px; }
     }
   </style>
 </head>
@@ -286,4 +304,5 @@
   </script>
 </body>
 </html>
+
 
